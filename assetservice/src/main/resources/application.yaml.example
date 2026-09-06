@@ -1,0 +1,13 @@
+# Copy this file to application.yaml and fill in your real DB password.
+# application.yaml is gitignored so credentials never reach the repo.
+spring:
+  application:
+    name: assetservice
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: CHANGE_ME
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
