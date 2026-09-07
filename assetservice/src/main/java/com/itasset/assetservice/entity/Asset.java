@@ -1,6 +1,10 @@
 package com.itasset.assetservice.entity;
 
+import com.itasset.assetservice.enums.AssetStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,7 +19,8 @@ public class Asset {
     private String assetTag;
     private String category;
     private String serialNumber;
-    private String status; // Day 8: convert to AssetStatus enum
+    @Enumerated(EnumType.STRING)
+    private AssetStatus status;
 
     // JPA needs a no-arg constructor
     public Asset() {
@@ -49,11 +54,11 @@ public class Asset {
         this.serialNumber = serialNumber;
     }
 
-    public String getStatus() {
+    public AssetStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(AssetStatus status) {
         this.status = status;
     }
 }
