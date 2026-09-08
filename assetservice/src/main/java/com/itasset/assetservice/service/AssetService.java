@@ -40,6 +40,7 @@ public class AssetService {
         Asset existing = findById(id); // reuses the 404 check above
         existing.setAssetTag(changes.getAssetTag());
         existing.setCategory(changes.getCategory());
+        existing.setLocation(changes.getLocation());
         existing.setSerialNumber(changes.getSerialNumber());
         existing.setStatus(changes.getStatus());
         return repository.save(existing);

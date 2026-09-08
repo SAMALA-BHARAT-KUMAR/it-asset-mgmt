@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 public record AssetRequest(
         @NotBlank String assetTag,
-        String category,
+        String name, // optional — human-friendly label
+        @NotNull Long categoryId,
+        Long locationId, // optional — an asset may not be placed anywhere yet
         @NotBlank String serialNumber,
         @NotNull AssetStatus status
 ) {

@@ -8,6 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Asset {
@@ -17,8 +18,15 @@ public class Asset {
     private Long id;
 
     private String assetTag;
-    private String category;
+    private String name;
     private String serialNumber;
+
+    @ManyToOne
+    private Category category;
+
+    @ManyToOne
+    private Location location;
+
     @Enumerated(EnumType.STRING)
     private AssetStatus status;
 
@@ -38,12 +46,28 @@ public class Asset {
         this.assetTag = assetTag;
     }
 
-    public String getCategory() {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public String getSerialNumber() {
