@@ -2,6 +2,8 @@ package com.itasset.assetservice.mapper;
 
 import com.itasset.assetservice.dto.AssetRequest;
 import com.itasset.assetservice.dto.AssetResponse;
+import com.itasset.assetservice.dto.CategoryDto;
+import com.itasset.assetservice.dto.LocationDto;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Category;
 import com.itasset.assetservice.entity.Location;
@@ -71,5 +73,31 @@ public class AssetMapper {
 
     private String label(Location l) {
         return l.getBuilding() + " / " + l.getFloor() + " / " + l.getRoom();
+    }
+
+    // --- pure Category/Location <-> DTO mapping (static: no DB lookups needed) ---
+
+    public static CategoryDto toDto(Category c) {
+        return new CategoryDto(c.getId(), c.getName(), c.getDescription());
+    }
+
+    // id is DB-generated, so a DTO -> entity conversion never carries it back in
+    public static Category toEntity(CategoryDto dto) {
+        Category c = new Category();
+        c.setName(dto.name());
+        c.setDescription(dto.description());
+        return c;
+    }
+
+    public static LocationDto toDto(Location l) {
+        return new LocationDto(l.getId(), l.getBuilding(), l.getFloor(), l.getRoom());
+    }
+
+    public static Location toEntity(LocationDto dto) {
+        Location l = new Location();
+        l.setBuilding(dto.building());
+        l.setFloor(dto.floor());
+        l.setRoom(dto.room());
+        return l;
     }
 }
