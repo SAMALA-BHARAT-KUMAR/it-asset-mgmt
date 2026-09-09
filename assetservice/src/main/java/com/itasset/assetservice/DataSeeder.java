@@ -3,10 +3,13 @@ package com.itasset.assetservice;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Category;
 import com.itasset.assetservice.entity.Location;
+import com.itasset.assetservice.entity.User;
 import com.itasset.assetservice.enums.AssetStatus;
+import com.itasset.assetservice.enums.Role;
 import com.itasset.assetservice.repository.AssetRepository;
 import com.itasset.assetservice.repository.CategoryRepository;
 import com.itasset.assetservice.repository.LocationRepository;
+import com.itasset.assetservice.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -19,13 +22,16 @@ public class DataSeeder implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final AssetRepository assetRepository;
+    private final UserRepository userRepository;
 
     public DataSeeder(CategoryRepository categoryRepository,
                       LocationRepository locationRepository,
-                      AssetRepository assetRepository) {
+                      AssetRepository assetRepository,
+                      UserRepository userRepository) {
         this.categoryRepository = categoryRepository;
         this.locationRepository = locationRepository;
         this.assetRepository = assetRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -34,9 +40,13 @@ public class DataSeeder implements CommandLineRunner {
         if (categoryRepository.count() == 0) {
             seed();
         }
+        if (userRepository.count() == 0) {
+            seedUsers();
+        }
         // checkpoint: read the counts back through each repository
-        System.out.printf("Seeded data -> categories: %d, locations: %d, assets: %d%n",
-                categoryRepository.count(), locationRepository.count(), assetRepository.count());
+        System.out.printf("Seeded data -> categories: %d, locations: %d, assets: %d, users: %d%n",
+                categoryRepository.count(), locationRepository.count(), assetRepository.count(),
+                userRepository.count());
     }
 
     private void seed() {
@@ -68,6 +78,23 @@ public class DataSeeder implements CommandLineRunner {
             asset.setLocation(locations.get(i % locations.size()));   // cycle locations
             assetRepository.save(asset);
         }
+    }
+
+    // 2 users: one ADMIN, one EMPLOYEE. password is a placeholder for now — Day 16 hashes it.
+    private void seedUsers() {
+        userRepository.save(user("admin", "Alice Admin", "admin@itasset.com", "IT", Role.ADMIN));
+        userRepository.save(user("employee", "Bob Employee", "bob@itasset.com", "Sales", Role.EMPLOYEE));
+    }
+
+    private User user(String username, String fullName, String email, String department, Role role) {
+        User u = new User();
+        u.setUsername(username);
+        u.setFullName(fullName);
+        u.setEmail(email);
+        u.setDepartment(department);
+        u.setRole(role);
+        u.setPasswordHash("placeholder"); // Day 16 replaces this with a real BCrypt hash
+        return u;
     }
 
     private Category category(String name, String description) {
