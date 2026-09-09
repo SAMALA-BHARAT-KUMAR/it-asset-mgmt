@@ -7,11 +7,10 @@ import com.itasset.assetservice.dto.LocationDto;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Category;
 import com.itasset.assetservice.entity.Location;
+import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.CategoryRepository;
 import com.itasset.assetservice.repository.LocationRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 // translates between the API shapes (DTOs) and the database shape (Asset entity)
 @Component
@@ -57,8 +56,7 @@ public class AssetMapper {
     // look up the referenced category; 404 if the client sent an id that doesn't exist
     private Category loadCategory(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + id));
     }
 
     // location is optional: null id -> no location; a given id must exist or it's a 404
@@ -67,8 +65,7 @@ public class AssetMapper {
             return null;
         }
         return locationRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Location not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Location not found: " + id));
     }
 
     private String label(Location l) {

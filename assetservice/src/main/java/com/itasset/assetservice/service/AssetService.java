@@ -75,6 +75,7 @@ public class AssetService {
             throw new DuplicateResourceException("Serial number already exists: " + changes.getSerialNumber());
         }
         existing.setAssetTag(changes.getAssetTag());
+        existing.setName(changes.getName());
         existing.setCategory(changes.getCategory());
         existing.setLocation(changes.getLocation());
         existing.setSerialNumber(changes.getSerialNumber());

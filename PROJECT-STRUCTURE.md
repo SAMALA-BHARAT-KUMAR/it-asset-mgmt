@@ -143,3 +143,47 @@ plus feature-specific packages as the plan adds them:
 - **Phase 2** (Days 29–56): split into services + discovery/config/gateway/Kafka/resilience
 - **Phase 3** (Days 57–72): Redis, MinIO, WebSocket, GraphQL, gRPC, Testcontainers
 - **Phase 4** (Days 73–90): AI layer — RAG (pgvector) + agentic tool-calling + streaming chat
+
+---
+
+## PART 3 — Gaps to fold in (production-grade concepts the base plan skipped)
+
+The original 90-day plan builds the *features* but walks past several concepts every
+real backend job hits. These fold into **existing days** — no new phase needed, just
+add the item on the day noted. Ordered by how badly it bites in real use.
+
+### 🔴 Must-add — these plug real bugs / block real deploys
+
+| # | Concept | Fold into | What to add | Why it matters |
+|---|---------|-----------|-------------|----------------|
+| 1 | **Optimistic locking** (concurrency / lost-update) | Day 11 (entities) + Day 22–23 (assignment) | `@Version private Long version;` on `Asset`, `Assignment`. New `@ExceptionHandler(OptimisticLockException)` → **409**. Client retries on conflict. | Two people edit the same asset & submit together → without this the 2nd save **silently erases** the 1st (lost update). Also stops the same asset being assigned twice under load. THE gap. |
+| 2 | **DB migrations** (Flyway) | Day 8 (schema starts) | Add `flyway-core`, `src/main/resources/db/migration/V1__init.sql`. Turn OFF `ddl-auto=update`. | Hibernate auto-DDL is fine for dev, **destroys data / drifts** in prod. Migrations are the only safe way to evolve a real schema. |
+| 3 | **API docs** (OpenAPI / Swagger) | Day 11 (once REST exists) | Add `springdoc-openapi-starter-webmvc-ui` → free Swagger UI at `/swagger-ui.html`. | Frontend + other teams need a contract. One dependency, huge payoff. |
+| 4 | **CI/CD pipeline** (GitHub Actions) | Day 28 (end of monolith) | `.github/workflows/ci.yml`: build + run tests on every push. Extend to build Docker images at Day 34. | "Works on my machine" → automated build/test gate. Non-negotiable for a team. |
+| 5 | **Idempotency keys** | Day 51 (Kafka consumer) | Dedup table / processed-event id check in the consumer. | Kafka is **at-least-once** → the same event *will* be delivered twice → assets double-assigned, audits doubled, unless the consumer is idempotent. |
+
+### 🟡 Should-add — needed to operate the system in prod
+
+| # | Concept | Fold into | What to add |
+|---|---------|-----------|-------------|
+| 6 | **Metrics + dashboards** | Day 46 (near Zipkin) | Spring Boot Actuator → Prometheus scrape → Grafana dashboards. (Plan has *tracing* but no *metrics*.) |
+| 7 | **Pessimistic locking** (`@Lock PESSIMISTIC_WRITE`) | Day 23 | For any truly hot row where conflicts are constant — alternative to #1. Know when to pick which. |
+| 8 | **`@Transactional` isolation + `@Async`** | Day 13–14 | Isolation levels (read-committed vs serializable), and `@Async` + a tuned `ThreadPoolTaskExecutor` for background work. |
+| 9 | **Kubernetes** | Day 88–90 (after docker-compose works) | Deployment/Service/ConfigMap/Secret manifests; the compose stack → k8s. Real prod runtime. |
+| 10 | **Secrets management** | Day 30 (config-server) | Stop putting DB passwords/JWT secret in plaintext config → Vault or at least env-injected secrets. |
+
+### 🟢 Nice-to-have — round it out if time allows
+
+| # | Concept | Fold into | What to add |
+|---|---------|-----------|-------------|
+| 11 | **Load / perf testing** | Day 27 or 57 | k6 / Gatling script against the assignment endpoint — proves the locking (#1, #7) actually holds under concurrency. |
+| 12 | **API versioning** | Day 11 | `/api/v1/...` path prefix from the start — cheap now, painful to retrofit. |
+
+---
+
+### The one to do FIRST (already in this codebase)
+
+**#1 optimistic locking** is the only gap that's a *live bug in code that exists today*:
+the Day 22–25 assignment flow has a textbook race condition. Everything else is future
+days. Add `@Version` to `Asset` + the 409 handler when you reach Day 22 — the Day 12
+exception plumbing is already there to carry it.
