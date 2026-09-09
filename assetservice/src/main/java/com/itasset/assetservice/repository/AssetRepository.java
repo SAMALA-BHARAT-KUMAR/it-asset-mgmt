@@ -13,4 +13,9 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
     List<Asset> findByStatus(AssetStatus status);
 
     Optional<Asset> findBySerialNumber(String serialNumber);
+
+    // duplicate checks for create/update — Spring writes the SQL from the method name
+    boolean existsByAssetTag(String assetTag);
+
+    boolean existsBySerialNumber(String serialNumber);
 }

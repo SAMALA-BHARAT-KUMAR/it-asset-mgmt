@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-// catches validation failures across all controllers and returns a clean 400 with field->message
+// catches validation failures and our custom exceptions across all controllers, returns clean JSON
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -22,5 +24,26 @@ public class GlobalExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         return errors;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleNotFound(ResourceNotFoundException ex) {
+        return body(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleDuplicate(DuplicateResourceException ex) {
+        return body(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    private Map<String, Object> body(HttpStatus status, String message) {
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("timestamp", Instant.now().toString());
+        error.put("status", status.value());
+        error.put("error", status.getReasonPhrase());
+        error.put("message", message);
+        return error;
     }
 }
