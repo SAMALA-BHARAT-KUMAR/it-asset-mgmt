@@ -11,3 +11,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+# Day 18: JWT signing. HS256 needs a key >= 256 bits (32+ chars).
+# Set JWT_SECRET in the environment in prod; never commit the real one.
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-me-32-bytes-minimum-secret-key!!}
+  expiration-ms: 3600000   # 1 hour
