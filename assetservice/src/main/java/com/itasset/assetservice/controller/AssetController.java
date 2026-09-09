@@ -2,13 +2,16 @@ package com.itasset.assetservice.controller;
 
 import com.itasset.assetservice.dto.AssetRequest;
 import com.itasset.assetservice.dto.AssetResponse;
+import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.mapper.AssetMapper;
 import com.itasset.assetservice.service.AssetService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/assets") // all endpoints below start with /api/assets
@@ -30,10 +33,20 @@ public class AssetController {
         return mapper.toResponse(service.create(mapper.toEntity(request)));
     }
 
-    // READ ALL: GET /api/assets  → 200 OK, list of every asset
+    // READ ALL: GET /api/assets?status=&categoryId=&page=&size=&sort=field,dir
+    // optional filters + paging + sorting; returns a Page (content + total counts)
     @GetMapping
-    public List<AssetResponse> findAll() {
-        return service.findAll().stream().map(mapper::toResponse).toList();
+    public Page<AssetResponse> findAll(
+            @RequestParam(required = false) AssetStatus status,
+            @RequestParam(required = false) Long categoryId,
+            Pageable pageable) {
+        return service.search(status, categoryId, pageable).map(mapper::toResponse);
+    }
+
+    // STATS: GET /api/assets/stats/by-category  → { "Laptop": 5, "Monitor": 3, ... }
+    @GetMapping("/stats/by-category")
+    public Map<String, Long> statsByCategory() {
+        return service.countByCategory();
     }
 
     // READ ONE: GET /api/assets/{id}  → 200 OK, or 404 if the id doesn't exist

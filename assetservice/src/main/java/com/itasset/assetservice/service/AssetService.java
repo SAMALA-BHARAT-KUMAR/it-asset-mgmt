@@ -1,14 +1,19 @@
 package com.itasset.assetservice.service;
 
 import com.itasset.assetservice.entity.Asset;
+import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.exception.DuplicateResourceException;
 import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.AssetRepository;
-
-import java.util.Objects;
+import com.itasset.assetservice.repository.AssetSpecifications;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class AssetService {
@@ -34,6 +39,21 @@ public class AssetService {
     // READ ALL: fetch every asset row from the database as a list
     public List<Asset> findAll() {
         return repository.findAll();
+    }
+
+    // SEARCH: optional status/category filters + paging + sorting, all in one query
+    public Page<Asset> search(AssetStatus status, Long categoryId, Pageable pageable) {
+        return repository.findAll(AssetSpecifications.filter(status, categoryId), pageable);
+    }
+
+    // STATS: per-category counts via ONE GROUP BY query (no N+1, no loading all rows into memory)
+    public Map<String, Long> countByCategory() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (Object[] row : repository.countGroupedByCategory()) {
+            String name = row[0] == null ? "(uncategorized)" : (String) row[0];
+            counts.put(name, (Long) row[1]);
+        }
+        return counts;
     }
 
     // READ ONE: find one asset by its id; if it doesn't exist, throw a 404 instead of crashing
