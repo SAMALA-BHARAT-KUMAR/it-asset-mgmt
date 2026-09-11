@@ -40,6 +40,11 @@ public class JwtUtil {
         return parse(token).getSubject();
     }
 
+    // Day 19: the filter needs the role too, to tell Spring what this user is allowed to do
+    public String extractRole(String token) {
+        return parse(token).get("role", String.class);
+    }
+
     public boolean isValid(String token) {
         try {
             parse(token); // throws if signature is wrong or the token is expired
