@@ -38,6 +38,12 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(AssetNotAvailableException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleNotAvailable(AssetNotAvailableException ex) {
+        return body(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     private Map<String, Object> body(HttpStatus status, String message) {
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("timestamp", Instant.now().toString());
