@@ -159,9 +159,9 @@
 - **Study:** How role checks compose with `Collection<? extends GrantedAuthority>`.
 - **Checkpoint:** Logged in as EMPLOYEE, `POST /api/assets` → 403; as ADMIN → 201.
 
-### DAY 21 · Fri, 25 Sep 2026 — Week 3 review, tests, refactor ⚠️ (only JwtUtilTest done)
+### DAY 21 · Fri, 25 Sep 2026 — Week 3 review, tests, refactor ⚠️ (tests done, matrix not run live)
 - **Focus:** Prove the security layer works.
-- **Build:** `JwtUtilTest` (generate/parse round-trip, expired-token case) ✅ and `AuthControllerTest` (happy path + bad credentials, Mockito) **← TODO**. Manually run the full role × endpoint access matrix. Tidy `SecurityConfig`.
+- **Build:** `JwtUtilTest` (generate/parse round-trip, expired-token case) ✅ and `AuthControllerTest` (happy path + bad credentials + unknown user, Mockito) ✅. Still TODO: manually run the full role × endpoint access matrix against a live app. Tidy `SecurityConfig` (optional).
 - **Study:** Recap generics notes.
 - **Checkpoint:** `mvn test` green; documented access matrix (ADMIN/EMPLOYEE × GET/POST/PUT/DELETE) behaves as expected.
 
