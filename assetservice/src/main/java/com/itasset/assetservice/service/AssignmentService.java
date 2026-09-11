@@ -1,5 +1,7 @@
 package com.itasset.assetservice.service;
 
+import com.itasset.assetservice.dto.AssetSummary;
+import com.itasset.assetservice.dto.EmployeeAssetsResponse;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Assignment;
 import com.itasset.assetservice.entity.User;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class AssignmentService {
@@ -75,5 +78,25 @@ public class AssignmentService {
         asset.setStatus(AssetStatus.ACTIVE); // back in stock, available to assign again
         assets.save(asset);
         return assignments.save(assignment);
+    }
+
+    // Day 25: full history for one asset / one user, newest-first
+    public List<Assignment> historyForAsset(Long assetId) {
+        return assignments.findByAssetIdOrderByAssignedAtDesc(assetId);
+    }
+
+    public List<Assignment> historyForUser(Long userId) {
+        return assignments.findByUserIdOrderByAssignedAtDesc(userId);
+    }
+
+    // Day 26: the flagship query — what does this employee currently hold?
+    public EmployeeAssetsResponse employeeAssets(Long userId) {
+        User user = users.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        List<AssetSummary> held = assignments.findByUserIdAndReturnedAtIsNull(userId).stream()
+                .map(Assignment::getAsset)
+                .map(a -> new AssetSummary(a.getSerialNumber(), a.getAssetTag(), a.getName()))
+                .toList();
+        return new EmployeeAssetsResponse(user.getFullName(), held, held.size());
     }
 }

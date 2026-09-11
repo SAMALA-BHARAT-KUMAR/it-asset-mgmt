@@ -11,9 +11,10 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 // Day 22: who has which asset, and when. returnedAt == null means the assignment is still open.
+// extends Auditable: createdBy = who assigned, updatedBy = who returned (auto-filled)
 @Entity
 @Table(name = "assignments")
-public class Assignment {
+public class Assignment extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

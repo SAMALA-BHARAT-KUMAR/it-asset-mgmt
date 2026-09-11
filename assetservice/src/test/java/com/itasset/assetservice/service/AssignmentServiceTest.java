@@ -1,5 +1,6 @@
 package com.itasset.assetservice.service;
 
+import com.itasset.assetservice.dto.EmployeeAssetsResponse;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Assignment;
 import com.itasset.assetservice.entity.User;
@@ -12,11 +13,13 @@ import com.itasset.assetservice.repository.AssignmentRepository;
 import com.itasset.assetservice.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -128,5 +131,41 @@ class AssignmentServiceTest {
         when(assignments.findById(5L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.returnAsset(5L));
+    }
+
+    // --- captured-argument + flagship query ---
+
+    @Test
+    void assign_capturesCorrectAssignmentFields() {
+        when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.ACTIVE)));
+        when(users.findById(2L)).thenReturn(Optional.of(user()));
+        when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(false);
+        when(assignments.save(any(Assignment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.assignAsset(1L, 2L, "note", "admin");
+
+        ArgumentCaptor<Assignment> captor = ArgumentCaptor.forClass(Assignment.class);
+        verify(assignments).save(captor.capture());
+        Assignment saved = captor.getValue();
+        assertEquals("Bharat", saved.getUser().getFullName());
+        assertEquals("admin", saved.getAssignedBy());
+        assertEquals("note", saved.getNotes());
+        assertNotNull(saved.getAssignedAt());
+    }
+
+    @Test
+    void employeeAssets_returnsHeldAssetsAndCount() {
+        when(users.findById(2L)).thenReturn(Optional.of(user()));
+        Asset a = asset(AssetStatus.DEPLOYED);
+        a.setSerialNumber("SN-9");
+        Assignment open = new Assignment();
+        open.setAsset(a);
+        when(assignments.findByUserIdAndReturnedAtIsNull(2L)).thenReturn(List.of(open));
+
+        EmployeeAssetsResponse resp = service.employeeAssets(2L);
+
+        assertEquals("Bharat", resp.employeeName());
+        assertEquals(1, resp.count());
+        assertEquals("SN-9", resp.assets().get(0).serialNumber());
     }
 }
