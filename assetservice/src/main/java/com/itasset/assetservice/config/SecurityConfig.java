@@ -3,6 +3,7 @@ package com.itasset.assetservice.config;
 import com.itasset.assetservice.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 // Day 16: password encoder. Day 17: SecurityFilterChain skeleton — public vs. private routes.
 @Configuration
+@EnableMethodSecurity // Day 20: turns on @PreAuthorize checks on controller methods
 public class SecurityConfig {
 
     // BCrypt hashes are salted + slow-by-design, so identical passwords get different hashes

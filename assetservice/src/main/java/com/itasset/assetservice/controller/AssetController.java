@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -28,6 +29,7 @@ public class AssetController {
 
     // CREATE: POST /api/assets  → 201 Created, returns the saved asset (with generated id)
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // Day 20: only ADMIN can create; EMPLOYEE gets 403
     @ResponseStatus(HttpStatus.CREATED)
     public AssetResponse create(@Valid @RequestBody AssetRequest request) {
         return mapper.toResponse(service.create(mapper.toEntity(request)));
@@ -57,12 +59,14 @@ public class AssetController {
 
     // UPDATE: PUT /api/assets/{id}  → 200 OK with the updated asset, or 404
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Day 20: ADMIN only
     public AssetResponse update(@PathVariable Long id, @Valid @RequestBody AssetRequest request) {
         return mapper.toResponse(service.update(id, mapper.toEntity(request)));
     }
 
     // DELETE: DELETE /api/assets/{id}  → 204 No Content, or 404
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Day 20: ADMIN only
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
