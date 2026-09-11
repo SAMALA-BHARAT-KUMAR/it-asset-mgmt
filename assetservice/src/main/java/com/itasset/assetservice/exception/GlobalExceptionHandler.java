@@ -44,6 +44,12 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(InvalidAssignmentStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleInvalidState(InvalidAssignmentStateException ex) {
+        return body(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     private Map<String, Object> body(HttpStatus status, String message) {
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("timestamp", Instant.now().toString());

@@ -5,6 +5,7 @@ import com.itasset.assetservice.entity.Assignment;
 import com.itasset.assetservice.entity.User;
 import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.exception.AssetNotAvailableException;
+import com.itasset.assetservice.exception.InvalidAssignmentStateException;
 import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.AssetRepository;
 import com.itasset.assetservice.repository.AssignmentRepository;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,5 +88,45 @@ class AssignmentServiceTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.assignAsset(1L, 2L, null, "admin"));
+    }
+
+    // --- return ---
+
+    private Assignment openAssignment() {
+        Assignment a = new Assignment();
+        a.setAsset(asset(AssetStatus.DEPLOYED));
+        a.setUser(user());
+        a.setAssignedAt(Instant.now());
+        return a; // returnedAt == null -> still out
+    }
+
+    @Test
+    void return_success_stampsReturnedAtAndFreesAsset() {
+        Assignment open = openAssignment();
+        when(assignments.findById(5L)).thenReturn(Optional.of(open));
+        when(assignments.save(any(Assignment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Assignment result = service.returnAsset(5L);
+
+        assertNotNull(result.getReturnedAt()); // now closed
+        assertEquals(AssetStatus.ACTIVE, result.getAsset().getStatus()); // back in stock
+        verify(assets).save(any(Asset.class));
+    }
+
+    @Test
+    void return_alreadyReturned_throws400() {
+        Assignment closed = openAssignment();
+        closed.setReturnedAt(Instant.now());
+        when(assignments.findById(5L)).thenReturn(Optional.of(closed));
+
+        assertThrows(InvalidAssignmentStateException.class, () -> service.returnAsset(5L));
+        verify(assets, never()).save(any());
+    }
+
+    @Test
+    void return_missingAssignment_throws404() {
+        when(assignments.findById(5L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.returnAsset(5L));
     }
 }

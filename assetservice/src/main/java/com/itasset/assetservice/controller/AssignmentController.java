@@ -29,4 +29,11 @@ public class AssignmentController {
         return AssignmentResponse.from(
                 service.assignAsset(request.assetId(), request.userId(), request.notes(), principal.getName()));
     }
+
+    // RETURN: POST /api/assignments/{id}/return → 200 OK. ADMIN only.
+    @PostMapping("/{id}/return")
+    @PreAuthorize("hasRole('ADMIN')")
+    public AssignmentResponse returnAsset(@PathVariable Long id) {
+        return AssignmentResponse.from(service.returnAsset(id));
+    }
 }

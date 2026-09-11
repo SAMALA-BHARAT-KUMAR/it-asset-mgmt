@@ -5,6 +5,7 @@ import com.itasset.assetservice.entity.Assignment;
 import com.itasset.assetservice.entity.User;
 import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.exception.AssetNotAvailableException;
+import com.itasset.assetservice.exception.InvalidAssignmentStateException;
 import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.AssetRepository;
 import com.itasset.assetservice.repository.AssignmentRepository;
@@ -54,6 +55,24 @@ public class AssignmentService {
         assignment.setNotes(notes);
 
         asset.setStatus(AssetStatus.DEPLOYED);
+        assets.save(asset);
+        return assignments.save(assignment);
+    }
+
+    // Day 24: close an open assignment — stamp returnedAt and flip the asset back to ACTIVE.
+    // Both writes in ONE @Transactional, same all-or-nothing guarantee as assign.
+    @Transactional
+    public Assignment returnAsset(Long assignmentId) {
+        Assignment assignment = assignments.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found: " + assignmentId));
+
+        if (assignment.getReturnedAt() != null) {
+            throw new InvalidAssignmentStateException("Assignment already returned: " + assignmentId);
+        }
+
+        assignment.setReturnedAt(Instant.now());
+        Asset asset = assignment.getAsset();
+        asset.setStatus(AssetStatus.ACTIVE); // back in stock, available to assign again
         assets.save(asset);
         return assignments.save(assignment);
     }
