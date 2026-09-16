@@ -94,8 +94,10 @@ public class AssignmentService {
         User user = users.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         List<AssetSummary> held = assignments.findByUserIdAndReturnedAtIsNull(userId).stream()
-                .map(Assignment::getAsset)
-                .map(a -> new AssetSummary(a.getSerialNumber(), a.getAssetTag(), a.getName()))
+                .map(assignment -> {
+                    Asset a = assignment.getAsset();
+                    return new AssetSummary(assignment.getId(), a.getSerialNumber(), a.getAssetTag(), a.getName());
+                })
                 .toList();
         return new EmployeeAssetsResponse(user.getFullName(), held, held.size());
     }

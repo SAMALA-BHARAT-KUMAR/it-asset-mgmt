@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -160,6 +161,7 @@ class AssignmentServiceTest {
         a.setSerialNumber("SN-9");
         Assignment open = new Assignment();
         open.setAsset(a);
+        ReflectionTestUtils.setField(open, "id", 42L); // db-generated id, no setter
         when(assignments.findByUserIdAndReturnedAtIsNull(2L)).thenReturn(List.of(open));
 
         EmployeeAssetsResponse resp = service.employeeAssets(2L);
@@ -167,5 +169,6 @@ class AssignmentServiceTest {
         assertEquals("Bharat", resp.employeeName());
         assertEquals(1, resp.count());
         assertEquals("SN-9", resp.assets().get(0).serialNumber());
+        assertEquals(42L, resp.assets().get(0).assignmentId()); // needed so admin can close it
     }
 }
