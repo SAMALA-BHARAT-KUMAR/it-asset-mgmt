@@ -1,0 +1,16 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    # 'native' = read config from a local folder instead of a remote git repo.
+    # Fine for the dev baseline. Prod switches this to a private git backend (see plan Day 30/41).
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # the folder holding <service-name>.yml files this server will hand out
+          search-locations: classpath:/config

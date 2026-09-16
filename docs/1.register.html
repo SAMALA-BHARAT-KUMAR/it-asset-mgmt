@@ -1,0 +1,351 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1120px; background:#f1f5f9; font-family:"Segoe UI",Arial,sans-serif; color:#0f172a; padding:34px 40px; }
+  h1 { font-size:28px; margin-bottom:6px; }
+  .lead { font-size:16px; color:#475569; margin-bottom:24px; }
+  .h2 { font-size:16px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin:26px 0 12px; }
+
+  /* the big signature block */
+  .sig { background:#0f172a; border-radius:14px; padding:26px 30px; font-family:Consolas,monospace;
+         font-size:20px; color:#e2e8f0; line-height:2.4; text-align:center; margin-bottom:8px; }
+  .out { background:#3f2d1a; color:#fdba74; padding:4px 10px; border-radius:8px; border:1px solid #b45309; }
+  .in  { background:#1e2f4d; color:#7dd3fc; padding:4px 10px; border-radius:8px; border:1px solid #2563eb; }
+  .kw  { color:#94a3b8; }
+  .bracket { display:flex; justify-content:space-between; font-family:Consolas,monospace; font-size:13px; color:#64748b; margin-bottom:22px; padding:0 4px; }
+  .bracket .l { color:#fb923c; } .bracket .r { color:#38bdf8; }
+
+  .row { display:flex; gap:16px; margin-bottom:16px; }
+  .col { flex:1; background:#fff; border-radius:14px; padding:20px 22px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .col.output { border-top:6px solid #f59e0b; }
+  .col.input  { border-top:6px solid #3b82f6; }
+  .tag { display:inline-block; font-size:12px; font-weight:800; letter-spacing:1px; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+  .tag.o { background:#fef3c7; color:#92400e; } .tag.i { background:#dbeafe; color:#1e40af; }
+  .col h3 { font-size:18px; margin-bottom:8px; }
+  .col p { font-size:14.5px; line-height:1.55; color:#334155; margin-bottom:8px; }
+  code { font-family:Consolas,monospace; font-size:14px; background:#f1f5f9; padding:1px 5px; border-radius:5px; color:#be123c; }
+  .when { font-family:Consolas,monospace; font-size:13px; font-weight:700; padding:4px 10px; border-radius:8px; display:inline-block; }
+  .when.first { background:#dcfce7; color:#166534; } .when.last { background:#fef9c3; color:#854d0e; }
+
+  /* timeline */
+  .tl { background:#0f172a; border-radius:14px; padding:24px 28px; color:#e2e8f0; }
+  .tl h3 { font-size:17px; color:#fff; margin-bottom:16px; }
+  .step { display:flex; align-items:center; gap:14px; font-family:Consolas,monospace; font-size:14px; margin-bottom:10px; }
+  .num { width:26px; height:26px; border-radius:50%; background:#312e81; color:#c7d2fe; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+  .born-in  { background:#1e2f4d; color:#7dd3fc; padding:2px 9px; border-radius:7px; }
+  .born-out { background:#3f2d1a; color:#fdba74; padding:2px 9px; border-radius:7px; }
+  .mid { color:#64748b; }
+  .arrow { color:#475569; }
+  b { color:#0f172a; }
+</style></head><body>
+
+  <h1>🔬 The controller method line, taken apart</h1>
+  <div class="lead">One line has <b>two</b> DTO types in it. This shows which is the <b>input</b>, which is the <b>output</b>, and — the part that trips everyone up — <b>when each is actually born</b>.</div>
+
+  <!-- SIMPLE STORY: the first object being born -->
+  <div class="h2">① THE VERY FIRST THING THAT HAPPENS</div>
+  <div style="display:flex; align-items:stretch; gap:0; margin-bottom:8px">
+    <div style="flex:1; background:#fff; border-radius:14px 0 0 14px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <div style="font-size:12px; font-weight:800; color:#94a3b8; letter-spacing:1px; margin-bottom:6px">YOU DO THIS</div>
+      <div style="font-size:15px; color:#334155; line-height:1.5">You hit the endpoint you built:<br><code>POST /api/auth/register</code><br>and send your form as <b>JSON text</b>.</div>
+    </div>
+    <div style="display:flex; align-items:center; font-size:30px; color:#94a3b8; padding:0 6px">➜</div>
+    <div style="flex:1; background:#fff; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <div style="font-size:12px; font-weight:800; color:#94a3b8; letter-spacing:1px; margin-bottom:6px">SPRING DOES THIS</div>
+      <div style="font-size:15px; color:#334155; line-height:1.5">Spring reads your JSON text and <b>builds one object</b> out of it. This is the <b>very first object</b> created.</div>
+    </div>
+    <div style="display:flex; align-items:center; font-size:30px; color:#94a3b8; padding:0 6px">➜</div>
+    <div style="flex:1; background:#eef2ff; border:1px solid #a5b4fc; border-radius:0 14px 14px 0; padding:18px 20px">
+      <div style="font-size:12px; font-weight:800; color:#6366f1; letter-spacing:1px; margin-bottom:6px">🆕 1ST OBJECT BORN</div>
+      <div style="font-size:15px; color:#3730a3; line-height:1.5"><code style="color:#3730a3;background:#e0e7ff">RegisterRequest</code> object.<br>Your JSON is now <b>inside it</b>, as neat typed fields you can use in code.</div>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px">In one line: <b>the JSON does not come into your code as text — Spring first packs it into a <code>RegisterRequest</code> object, and that object is the first thing born.</b></div>
+
+  <div class="h2">🔁 HOW EACH JSON FIELD BECOMES A DTO FIELD</div>
+  <div style="display:flex; gap:0; align-items:stretch; margin-bottom:10px">
+    <!-- JSON side -->
+    <div style="flex:1; background:#0f172a; border-radius:14px 0 0 14px; padding:20px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#7dd3fc; margin-bottom:10px">📨 THE JSON YOU SENT (just text)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.35">{
+  <span style="color:#7dd3fc">"fullName"</span>:   <span style="color:#86efac">"Asha Rao"</span>,
+  <span style="color:#7dd3fc">"email"</span>:      <span style="color:#86efac">"asha@acme.com"</span>,
+  <span style="color:#7dd3fc">"username"</span>:   <span style="color:#86efac">"asha"</span>,
+  <span style="color:#7dd3fc">"password"</span>:   <span style="color:#86efac">"secret123"</span>,
+  <span style="color:#7dd3fc">"department"</span>: <span style="color:#86efac">"Finance"</span>
+}</pre>
+    </div>
+    <!-- arrows -->
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; background:#1e293b; padding:0 4px; color:#fbbf24; font-family:Consolas,monospace; font-size:12px">
+      <div style="height:44px"></div>
+      <div style="line-height:2.35; font-size:16px">➜<br>➜<br>➜<br>➜<br>➜</div>
+    </div>
+    <!-- DTO side -->
+    <div style="flex:1.15; background:#eef2ff; border:1px solid #a5b4fc; border-radius:0 14px 14px 0; padding:20px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#4f46e5; margin-bottom:10px">🆕 THE RegisterRequest OBJECT (typed fields)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.35; color:#3730a3">RegisterRequest {
+  <span style="color:#0ea5e9">String</span> fullName   = <span style="color:#059669">"Asha Rao"</span>
+  <span style="color:#0ea5e9">String</span> email      = <span style="color:#059669">"asha@acme.com"</span>
+  <span style="color:#0ea5e9">String</span> username   = <span style="color:#059669">"asha"</span>
+  <span style="color:#0ea5e9">String</span> password   = <span style="color:#059669">"secret123"</span>
+  <span style="color:#0ea5e9">String</span> department = <span style="color:#059669">"Finance"</span>
+}</pre>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px">The <b>key name</b> in the JSON (<code>"email"</code>) must match the <b>field name</b> in the record (<code>email</code>) — that's how Jackson knows where each value goes. The value's <b>type</b> becomes the field's declared type: here every value is text, so every field is a <code>String</code>.</div>
+
+  <div class="h2">② THAT OBJECT IS THE PARAMETER OF YOUR METHOD</div>
+  <div class="sig">
+    <span class="kw">public</span> <span class="out">ResponseEntity&lt;AuthResponse&gt;</span> register<span class="kw">(</span><span class="in">@Valid @RequestBody RegisterRequest req</span><span class="kw">)</span>
+  </div>
+  <div class="bracket">
+    <span class="l">▲ the OUTPUT — what I PROMISE to give back</span>
+    <span class="r">the INPUT — what I RECEIVE ▲</span>
+  </div>
+
+  <div class="row">
+    <div class="col output">
+      <span class="tag o">LEFT SIDE · RETURN TYPE</span>
+      <h3><code>ResponseEntity&lt;AuthResponse&gt;</code></h3>
+      <p>This is <b>NOT an object yet</b>. It's a <b>promise</b>: "when I finish, I'll return an <code>AuthResponse</code> wrapped in a response envelope."</p>
+      <p>It sits here as a label the whole time. The real <code>AuthResponse</code> object is built on the very <b>last</b> line of the method (the <code>return</code>).</p>
+      <span class="when last">🕐 born LAST — at the return statement</span>
+    </div>
+    <div class="col input">
+      <span class="tag i">RIGHT SIDE · PARAMETER</span>
+      <h3><code>RegisterRequest req</code></h3>
+      <p>This is a <b>real object</b>, and Spring builds it <b>before your method body runs</b> — a method can't start until its arguments exist.</p>
+      <p><code>@RequestBody</code> = "fill this from the JSON body." <code>@Valid</code> = "check it first." By your first line of code, <code>req</code> is ready.</p>
+      <span class="when first">🕐 born FIRST — before the method starts</span>
+    </div>
+  </div>
+
+  <div class="h2">⚠️ THE TRAP YOU HIT</div>
+  <div class="col" style="border-top:6px solid #ef4444; margin-bottom:26px">
+    <p style="font-size:15px"><b>Reading the line left-to-right is NOT the order objects are created.</b> <code>AuthResponse</code> is written first (on the left) so it <i>looks</i> like it's made first — but it's only a return-type label. The object actually created first is the one on the right, <code>RegisterRequest</code>.</p>
+  </div>
+
+  <div class="h2">③ NOW USE THE DTO TO BUILD THE User OBJECT (same method)</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">The DTO is ready, so the next line of code is <code>User user = new User()</code> — the <b>2nd object born</b>. Then each value is <b>copied out of <code>req</code> and set onto <code>user</code></b>, one field at a time.</div>
+  <div style="display:flex; gap:0; align-items:stretch; margin-bottom:10px">
+    <!-- RegisterRequest side -->
+    <div style="flex:1; background:#eef2ff; border:1px solid #a5b4fc; border-radius:14px 0 0 14px; padding:20px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#4f46e5; margin-bottom:10px">📥 RegisterRequest req (already built)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.5; color:#3730a3">req.fullName()    <span style="color:#059669">"Asha Rao"</span>
+req.email()       <span style="color:#059669">"asha@acme.com"</span>
+req.username()    <span style="color:#059669">"asha"</span>
+req.department()  <span style="color:#059669">"Finance"</span>
+req.password()    <span style="color:#059669">"secret123"</span></pre>
+    </div>
+    <!-- arrows + labels -->
+    <div style="display:flex; flex-direction:column; justify-content:flex-end; align-items:center; background:#1e293b; padding:20px 6px; font-family:Consolas,monospace; font-size:10px; color:#fbbf24; line-height:2.5">
+      <div style="height:24px"></div>
+      <div>copy ➜</div><div>copy ➜</div><div>copy ➜</div><div>copy ➜</div>
+      <div style="color:#f87171">✗ skip ✗</div>
+    </div>
+    <!-- User side -->
+    <div style="flex:1.2; background:#0f172a; border-radius:0 14px 14px 0; padding:20px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#86efac; margin-bottom:10px">🆕 User user = new User()  (2nd object)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.5; color:#e2e8f0">user.setFullName(...)   <span style="color:#86efac">"Asha Rao"</span>
+user.setEmail(...)      <span style="color:#86efac">"asha@acme.com"</span>
+user.setUsername(...)   <span style="color:#86efac">"asha"</span>
+user.setDepartment(...) <span style="color:#86efac">"Finance"</span>
+user.setRole(...)       <span style="color:#c4b5fd">EMPLOYEE</span>  <span style="color:#64748b">← added, not from req</span>
+<span style="color:#64748b">passwordHash            (empty — hasher fills it next)</span>
+<span style="color:#64748b">id                      (empty — DB fills it at save)</span></pre>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px"><b>Two objects, not one:</b> <code>req</code> and <code>user</code> are separate. Four fields copy straight across. <b>Password is deliberately skipped here</b> (it goes to the hasher, so the real password is never stored). <b>Role</b> is added by your code, and <b>id</b> + <b>passwordHash</b> get filled in later steps.</div>
+
+  <div class="h2">④ THE CONTROLLER HANDS user TO THE SERVICE — WHICH RUNS 4 STEPS</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">Next line: <code>User saved = userService.registerUser(user, req.password())</code>. The controller stops working and the <b>service</b> takes over. Inside it, 4 steps run in order:</div>
+  <div style="background:#fff; border-radius:14px; padding:20px 24px; box-shadow:0 1px 3px rgba(0,0,0,.08); margin-bottom:10px">
+    <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:14px">
+      <div style="width:28px; height:28px; border-radius:50%; background:#dbeafe; color:#1e40af; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:Consolas,monospace; flex-shrink:0">1</div>
+      <div style="flex:1"><b>Is the username taken?</b> &nbsp;<code>repository.existsByUsername("asha")</code> → a <code>SELECT</code> hits the DB.<br><span style="color:#991b1b; font-family:Consolas,monospace; font-size:13px">✗ already exists → throw DuplicateResourceException → 409 Conflict, STOP</span></div>
+    </div>
+    <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:14px">
+      <div style="width:28px; height:28px; border-radius:50%; background:#dbeafe; color:#1e40af; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:Consolas,monospace; flex-shrink:0">2</div>
+      <div style="flex:1"><b>Is the email taken?</b> &nbsp;<code>repository.existsByEmail("asha@acme.com")</code> → another <code>SELECT</code>.<br><span style="color:#991b1b; font-family:Consolas,monospace; font-size:13px">✗ already exists → 409 Conflict, STOP</span></div>
+    </div>
+    <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:14px">
+      <div style="width:28px; height:28px; border-radius:50%; background:#ede9fe; color:#6d28d9; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:Consolas,monospace; flex-shrink:0">3</div>
+      <div style="flex:1"><b>Hash the password.</b> &nbsp;<code>passwordEncoder.encode("secret123")</code> → <code>"$2a$10$…"</code>, then <code>user.setPasswordHash(...)</code>.<br><span style="color:#64748b; font-family:Consolas,monospace; font-size:13px">fills the empty passwordHash slot with the HASH — never the real password</span></div>
+    </div>
+    <div style="display:flex; align-items:flex-start; gap:14px">
+      <div style="width:28px; height:28px; border-radius:50%; background:#dcfce7; color:#166534; display:flex; align-items:center; justify-content:center; font-weight:800; font-family:Consolas,monospace; flex-shrink:0">4</div>
+      <div style="flex:1"><b>Save to the database.</b> &nbsp;<code>repository.save(user)</code> → <code>SQL INSERT</code>. DB generates <code>id=42</code> and returns the completed user.<br><span style="color:#166534; font-family:Consolas,monospace; font-size:13px">this returned user becomes → User saved (now has its id)</span></div>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px">If step 1 or 2 fails, it <b>stops immediately with 409</b> — steps 3 and 4 never run, nothing is saved. The controller is just the coordinator; the <b>service</b> does the checking, hashing and saving.</div>
+
+  <div class="h2">⑤ WHAT ACTUALLY GETS SAVED — the User entity becomes ONE row</div>
+  <div style="display:flex; gap:0; align-items:stretch; margin-bottom:10px">
+    <!-- entity side -->
+    <div style="flex:1; background:#0f172a; border-radius:14px 0 0 14px; padding:20px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#86efac; margin-bottom:10px">🧍 User entity (in memory)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:13.5px; line-height:2.3; color:#e2e8f0">id           <span style="color:#64748b">(empty)</span>
+fullName     <span style="color:#86efac">"Asha Rao"</span>
+email        <span style="color:#86efac">"asha@acme.com"</span>
+username     <span style="color:#86efac">"asha"</span>
+passwordHash <span style="color:#fbbf24">"$2a$10$…"</span>
+department   <span style="color:#86efac">"Finance"</span>
+role         <span style="color:#c4b5fd">EMPLOYEE</span></pre>
+    </div>
+    <div style="display:flex; align-items:center; background:#1e293b; padding:0 10px; color:#fbbf24; font-family:Consolas,monospace; font-size:11px; text-align:center">save()<br>➜<br>INSERT</div>
+    <!-- table side -->
+    <div style="flex:1.5; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:0 14px 14px 0; padding:20px 22px; overflow:auto">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#047857; margin-bottom:10px">🗄️ one row in the "users" table</div>
+      <table style="border-collapse:collapse; font-family:Consolas,monospace; font-size:12px; color:#065f46">
+        <tr style="color:#059669; text-align:left"><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">id</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">full_name</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">email</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">username</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">password_hash</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">department</th><th style="padding:4px 8px; border-bottom:1px solid #6ee7b7">role</th></tr>
+        <tr><td style="padding:6px 8px; font-weight:800; color:#b45309">42 🔑</td><td style="padding:6px 8px">Asha Rao</td><td style="padding:6px 8px">asha@acme.com</td><td style="padding:6px 8px">asha</td><td style="padding:6px 8px">$2a$10$…</td><td style="padding:6px 8px">Finance</td><td style="padding:6px 8px">EMPLOYEE</td></tr>
+      </table>
+      <div style="font-size:12.5px; color:#047857; margin-top:12px; line-height:1.5">🔑 <b>id = 42 is generated by the database</b>, not your code (<code>@GeneratedValue</code>).<br>⚠️ the <b>password_hash</b> column holds the hash, <b>never</b> "secret123".</div>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px"><b>One row, one column per field.</b> It's the <code>User</code> <b>entity</b> that's saved (not the DTO). The <code>id</code> is auto-created by the DB, so <code>saved.getId()</code> is <code>42</code> right after. Journey so far: <code>JSON → RegisterRequest → User → one DB row</code>.</div>
+
+  <div class="h2">⑥ TWO TOKENS ARE BORN, THEN THE REPLY IS PACKED</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">Last two lines: <code>refreshTokenService.create(...)</code> then <code>authResponse(saved, refresh, 201)</code>. Two <b>different</b> tokens get created, in two places, by two specialist classes:</div>
+  <div style="display:flex; gap:14px; margin-bottom:12px">
+    <!-- access token -->
+    <div style="flex:1; background:#fff; border-radius:14px; border-top:6px solid #22c55e; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <div style="font-size:22px; margin-bottom:6px">🔑</div>
+      <div style="font-size:17px; font-weight:800; margin-bottom:6px">Access token (JWT)</div>
+      <div style="font-size:13.5px; color:#334155; line-height:1.5; margin-bottom:8px">Made by <code>JwtUtil.generateToken()</code> — <b>called from inside <code>authResponse()</code></b>. A <b>signed</b> string holding <i>who you are + your role</i>.</div>
+      <pre style="margin:0; font-size:11.5px; line-height:1.6">Jwts.builder()
+  .subject("asha")
+  .claim("role","EMPLOYEE")
+  .expiration(now + 15min) <span style="color:#fca5a5">// short</span>
+  .signWith(secret) <span style="color:#fca5a5">// can't forge</span></pre>
+      <div style="margin-top:8px; font-size:12.5px; color:#166534">stored in DB? <b>NO</b> · travels in the <b>JSON body</b></div>
+    </div>
+    <!-- refresh token -->
+    <div style="flex:1; background:#fff; border-radius:14px; border-top:6px solid #f59e0b; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <div style="font-size:22px; margin-bottom:6px">🎟️</div>
+      <div style="font-size:17px; font-weight:800; margin-bottom:6px">Refresh token</div>
+      <div style="font-size:13.5px; color:#334155; line-height:1.5; margin-bottom:8px">Made by <code>RefreshTokenService.create()</code> — <b>on its own line before authResponse</b>. Just a big <b>random</b> string.</div>
+      <pre style="margin:0; font-size:11.5px; line-height:1.6">new RefreshToken()
+  token = UUID.random()
+  username = "asha"
+  expiresAt = now + 7days <span style="color:#fbbf24">// long</span>
+  save() <span style="color:#fbbf24">// written to DB</span></pre>
+      <div style="margin-top:8px; font-size:12.5px; color:#92400e">stored in DB? <b>YES</b> · travels as an <b>HttpOnly cookie</b></div>
+    </div>
+  </div>
+  <div style="background:#0f172a; border-radius:14px; padding:18px 22px; margin-bottom:26px">
+    <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#86efac; margin-bottom:8px">📤 authResponse packs the final reply → 201 Created</div>
+    <pre style="margin:0; background:transparent; padding:0; font-size:13px; line-height:1.8"><span style="color:#64748b">// header</span>  Set-Cookie: <span style="color:#7dd3fc">refreshToken</span>=<span style="color:#86efac">a1b2-…</span>; HttpOnly   <span style="color:#fbbf24">← refresh token</span>
+<span style="color:#64748b">// body</span>    { <span style="color:#7dd3fc">"accessToken"</span>:<span style="color:#86efac">"eyJ…"</span>, <span style="color:#7dd3fc">"username"</span>:<span style="color:#86efac">"asha"</span>, <span style="color:#7dd3fc">"role"</span>:<span style="color:#86efac">"EMPLOYEE"</span> }  <span style="color:#4ade80">← access token</span></pre>
+  </div>
+
+  <div class="h2">⑦ LATER — WHO MAKES THE TOKEN vs WHO CHECKS IT</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">Two classes in the <code>security</code> package, opposite jobs. One <b>makes</b> tokens at login/register; the other <b>checks</b> them on every request after:</div>
+  <div style="display:flex; gap:14px; margin-bottom:26px">
+    <div style="flex:1; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:14px; padding:18px 20px">
+      <div style="font-size:16px; font-weight:800; color:#047857; margin-bottom:6px">🏭 JwtUtil — the MAKER</div>
+      <div style="font-size:13.5px; color:#065f46; line-height:1.55"><code>generateToken()</code> builds &amp; signs the JWT (used now, during register/login).<br>It also knows how to <b>read</b> a token: <code>isValid()</code>, <code>extractUsername()</code>, <code>extractRole()</code>.</div>
+    </div>
+    <div style="flex:1; background:#eff6ff; border:1px solid #93c5fd; border-radius:14px; padding:18px 20px">
+      <div style="font-size:16px; font-weight:800; color:#1e40af; margin-bottom:6px">🚪 JwtAuthFilter — the CHECKER</div>
+      <div style="font-size:13.5px; color:#1e3a8a; line-height:1.55">Runs on <b>every future request</b>. Reads the <code>Authorization: Bearer &lt;jwt&gt;</code> header, asks <code>jwtUtil.isValid()</code>, and if good tells Spring <b>"this user is in"</b> (with their role). No token / bad token → stays anonymous → protected routes return <b>401</b>.</div>
+    </div>
+  </div>
+
+  <div class="h2">⑧ THE RETURN JOURNEY — entity ➜ DTO ➜ JSON ➜ you</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">The <code>User</code> entity <b>never leaves the server</b>. Only a <b>DTO</b> goes back, and Jackson turns it into JSON — the exact mirror of the way in.</div>
+  <div style="display:flex; align-items:stretch; gap:0; margin-bottom:8px">
+    <div style="flex:1; background:#0f172a; border-radius:14px 0 0 14px; padding:16px 20px; color:#e2e8f0; font-family:Consolas,monospace; font-size:13px; line-height:1.7">🧍 <b style="color:#86efac">User saved</b><br>(entity, has id + hash)<br><span style="color:#64748b">stays on the server</span></div>
+    <div style="display:flex; align-items:center; background:#1e293b; padding:0 8px; color:#fbbf24; font-family:Consolas,monospace; font-size:11px">build DTO ➜</div>
+    <div style="flex:1.1; background:#312e81; padding:16px 20px; color:#c7d2fe; font-family:Consolas,monospace; font-size:13px; line-height:1.7">🆕 <b>new AuthResponse(</b><br>&nbsp;&nbsp;access, username, role<b>)</b><br><span style="color:#a5b4fc">register builds this BY HAND</span></div>
+    <div style="display:flex; align-items:center; background:#1e293b; padding:0 8px; color:#fbbf24; font-family:Consolas,monospace; font-size:11px">Jackson ➜</div>
+    <div style="flex:1.1; background:#064e3b; border-radius:0 14px 14px 0; padding:16px 20px; color:#a7f3d0; font-family:Consolas,monospace; font-size:12px; line-height:1.6">📤 <b>201 Created</b><br>body: { accessToken, username, role }<br>+ Set-Cookie: refreshToken</div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px"><b>Rule:</b> entity = database shape (stays in), DTO = API shape (goes out). You never send the entity to the client — you copy the safe fields into a response DTO first (that's why <code>passwordHash</code> never leaks).</div>
+
+  <div class="h2">📦 WHERE A MAPPER FITS — the DTO ⇄ Entity translator</div>
+  <div style="display:flex; gap:14px; margin-bottom:12px">
+    <div style="flex:1; background:#fff7ed; border:1px solid #fdba74; border-radius:14px; padding:16px 20px">
+      <div style="font-size:15px; font-weight:800; color:#9a3412; margin-bottom:6px">Register flow → maps BY HAND</div>
+      <div style="font-size:13.5px; color:#7c2d12; line-height:1.55">No mapper class. <code>AuthController</code> writes each line itself:<br><code>user.setEmail(req.email())</code> … <code>new AuthResponse(...)</code>. Fine for a small, one-off shape.</div>
+    </div>
+    <div style="flex:1; background:#eff6ff; border:1px solid #93c5fd; border-radius:14px; padding:16px 20px">
+      <div style="font-size:15px; font-weight:800; color:#1e40af; margin-bottom:6px">Asset flow → uses AssetMapper</div>
+      <div style="font-size:13.5px; color:#1e3a8a; line-height:1.55"><code>mapper.toEntity(AssetRequest)</code> → <code>new Asset()</code> <i>(DTO→entity, in)</i><br><code>mapper.toResponse(Asset)</code> → <code>new AssetResponse()</code> <i>(entity→DTO, out)</i><br>It also loads Category/Location from the DB → <b>404</b> if the id is missing.</div>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px">A <b>mapper</b> is just a dedicated class that does the DTO⇄entity copying, so controllers/services stay clean. Your project uses one where the shape is complex (<code>Asset</code>) and skips it where it's trivial (<code>register</code>). Same idea either way: <b>translate between the API shape and the DB shape.</b></div>
+
+  <div class="h2">⚠️ EXCEPTIONS — how errors become clean JSON (GlobalExceptionHandler)</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">Anywhere in the flow, if something throws, one central class (<code>@RestControllerAdvice</code>) catches it and returns a tidy status + message — so the client never sees a raw stack trace.</div>
+  <div style="background:#fff; border-radius:14px; padding:14px 18px; box-shadow:0 1px 3px rgba(0,0,0,.08); margin-bottom:26px; overflow:auto">
+    <table style="width:100%; border-collapse:collapse; font-size:13.5px">
+      <tr style="text-align:left; color:#64748b; font-weight:800"><th style="padding:7px 10px">Thrown when…</th><th style="padding:7px 10px">Exception</th><th style="padding:7px 10px">→ Status</th></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px">DTO fails @Valid (blank / bad email)</td><td style="padding:7px 10px"><code>MethodArgumentNotValidException</code></td><td style="padding:7px 10px"><b style="color:#b45309">400</b> Bad Request</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px">username / email already taken</td><td style="padding:7px 10px"><code>DuplicateResourceException</code></td><td style="padding:7px 10px"><b style="color:#b91c1c">409</b> Conflict</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px">id doesn't exist (category, asset…)</td><td style="padding:7px 10px"><code>ResourceNotFoundException</code></td><td style="padding:7px 10px"><b style="color:#7c3aed">404</b> Not Found</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px">wrong login / bad refresh token</td><td style="padding:7px 10px"><code>ResponseStatusException</code></td><td style="padding:7px 10px"><b style="color:#0369a1">401</b> Unauthorized</td></tr>
+    </table>
+  </div>
+
+  <div class="h2">🔓 LATER — CALLING A PRIVATE ENDPOINT (the request flow)</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:12px; padding-left:2px">Now logged in, the user calls a protected route, sending the <b>access token in the header</b> (not the refresh token, not the body):</div>
+  <div style="background:#0f172a; border-radius:14px; padding:18px 22px; margin-bottom:8px; color:#e2e8f0; font-family:Consolas,monospace; font-size:13px; line-height:1.9">
+    <div style="color:#7dd3fc">GET /api/assets</div>
+    <div>Authorization: Bearer <span style="color:#86efac">eyJhbGciOiJIUzI1NiJ9…</span>  <span style="color:#64748b">← the access token (JWT)</span></div>
+    <div style="margin-top:10px; color:#64748b">│</div>
+    <div><span style="color:#93c5fd">1. JwtAuthFilter</span> reads the header, re-hashes header+payload with the <b>same secret key</b> → signature matches? valid + not expired?</div>
+    <div style="color:#f87171">&nbsp;&nbsp;&nbsp;✗ no/invalid token → stays anonymous</div>
+    <div style="color:#64748b">│</div>
+    <div><span style="color:#93c5fd">2. Rules</span> — public route? allow. else authenticated? <span style="color:#4ade80">✔ go on</span> / <span style="color:#f87171">✗ 401 Unauthorized</span></div>
+    <div style="color:#64748b">│</div>
+    <div><span style="color:#93c5fd">3. @PreAuthorize</span> role check (if any) — right role? <span style="color:#4ade80">✔</span> / <span style="color:#f87171">✗ 403 Forbidden</span></div>
+    <div style="color:#64748b">│</div>
+    <div><span style="color:#c4b5fd">4. Controller</span> runs → service → <span style="color:#fdba74">mapper.toResponse()</span> → JSON → <b style="color:#4ade80">200 OK</b></div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:26px; padding-left:2px"><b>401</b> = "don't know who you are" (no/bad token). &nbsp;<b>403</b> = "know you, but not allowed" (wrong role). &nbsp;When the access token finally expires → <code>POST /api/auth/refresh</code> (uses the refresh cookie) mints a new one.</div>
+
+  <div class="h2">🏛️ LAYER CONTRACTS — what each layer expects &amp; returns</div>
+  <div style="font-size:14px; color:#475569; margin-bottom:14px; padding-left:2px">Each layer only speaks in <b>one shape</b>. The controller waits for a <b>DTO</b>, the service works in <b>entities</b>, the repository talks to the <b>database</b>. Read the arrows: <b style="color:#2563eb">▼ what goes down</b>, <b style="color:#16a34a">▲ what comes back up</b>.</div>
+
+  <!-- Controller layer -->
+  <div style="background:#eef2ff; border:1px solid #a5b4fc; border-radius:14px 14px 0 0; padding:16px 22px">
+    <div style="font-size:16px; font-weight:800; color:#3730a3; margin-bottom:4px">🎛️ CONTROLLER — speaks DTO</div>
+    <div style="font-size:13.5px; color:#3730a3; line-height:1.6">Waits for: a <b>request DTO</b> in, a <b>response DTO</b> out.<br><span style="font-family:Consolas,monospace; font-size:12.5px">receives <b>RegisterRequest</b> &nbsp;·&nbsp; returns <b>ResponseEntity&lt;AuthResponse&gt;</b></span></div>
+  </div>
+  <div style="text-align:center; background:#312e81; color:#c7d2fe; font-family:Consolas,monospace; font-size:12px; padding:6px">
+    <span style="color:#93c5fd">▼ passes a User entity down</span> &nbsp;&nbsp;·&nbsp;&nbsp; <span style="color:#86efac">▲ gets a saved User entity back</span>
+  </div>
+
+  <!-- Service layer -->
+  <div style="background:#f0fdf4; border-left:1px solid #86efac; border-right:1px solid #86efac; padding:16px 22px">
+    <div style="font-size:16px; font-weight:800; color:#166534; margin-bottom:4px">⚙️ SERVICE — speaks Entity</div>
+    <div style="font-size:13.5px; color:#166534; line-height:1.6">Accepts an <b>entity</b> (+ raw password), returns an <b>entity</b>. Runs the rules (dupe check, hashing).<br><span style="font-family:Consolas,monospace; font-size:12.5px">registerUser(<b>User</b>, String) &nbsp;→&nbsp; returns <b>User</b></span></div>
+  </div>
+  <div style="text-align:center; background:#14532d; color:#bbf7d0; font-family:Consolas,monospace; font-size:12px; padding:6px">
+    <span style="color:#86efac">▼ asks the repository (save / existsBy)</span> &nbsp;&nbsp;·&nbsp;&nbsp; <span style="color:#fde68a">▲ gets a User / boolean back</span>
+  </div>
+
+  <!-- Repository layer -->
+  <div style="background:#fffbeb; border-left:1px solid #fcd34d; border-right:1px solid #fcd34d; padding:16px 22px">
+    <div style="font-size:16px; font-weight:800; color:#92400e; margin-bottom:4px">🗃️ REPOSITORY — speaks Entity ⇄ Database</div>
+    <div style="font-size:13.5px; color:#92400e; line-height:1.6">Turns method calls into SQL, hands back entities.<br><span style="font-family:Consolas,monospace; font-size:12.5px">save(<b>User</b>) → <b>User</b> (with id) &nbsp;·&nbsp; existsByUsername(String) → <b>boolean</b></span></div>
+  </div>
+  <div style="text-align:center; background:#78350f; color:#fde68a; font-family:Consolas,monospace; font-size:12px; padding:6px">
+    <span style="color:#fde68a">▼ SQL INSERT / SELECT</span> &nbsp;&nbsp;·&nbsp;&nbsp; <span style="color:#fbbf24">▲ rows</span>
+  </div>
+
+  <!-- DB -->
+  <div style="background:#1e293b; border-radius:0 0 14px 14px; padding:14px 22px; color:#e2e8f0; font-size:14px; font-weight:700">💾 DATABASE — rows in the <code style="background:#0f172a; color:#7dd3fc">users</code> table</div>
+
+  <div style="font-size:14px; color:#475569; margin:16px 0 26px; padding-left:2px"><b>The golden rule:</b> the <b>DTO stops at the controller</b> — it never goes deeper. Below the controller, everything is an <b>entity</b>. That's why the controller must translate <code>RegisterRequest → User</code> on the way in, and <code>User → AuthResponse</code> on the way out. Each layer only hands the next one the shape it expects.</div>
+
+  <div class="tl">
+    <h3>🕐 Real birth order — start to finish</h3>
+    <div class="step"><span class="num">1</span> You hit <b style="color:#e2e8f0">POST /api/auth/register</b> with a JSON body</div>
+    <div class="step"><span class="num">2</span> Spring builds <span class="born-in">RegisterRequest</span> <span class="mid">from the JSON, then @Valid checks it</span> <span class="arrow">←</span> <b style="color:#7dd3fc">INPUT born</b></div>
+    <div class="step"><span class="num">3</span> <span class="mid">Now your method runs:</span> new User <span class="arrow">→</span> hash <span class="arrow">→</span> save <span class="arrow">→</span> RefreshToken <span class="arrow">→</span> JWT</div>
+    <div class="step"><span class="num">4</span> Last line: <span class="born-out">new AuthResponse(...)</span> <span class="mid">wrapped in ResponseEntity, returned</span> <span class="arrow">←</span> <b style="color:#fdba74">OUTPUT born</b></div>
+    <div class="step"><span class="num">5</span> Spring turns that <span class="born-out">AuthResponse</span> back into JSON <span class="arrow">→</span> your browser</div>
+  </div>
+
+</body></html>

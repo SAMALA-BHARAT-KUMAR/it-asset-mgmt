@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1040px; background:#f1f5f9; font-family:"Segoe UI",Arial,sans-serif; color:#0f172a; padding:32px 36px; }
+  h1 { font-size:30px; margin-bottom:6px; }
+  .lead { font-size:16px; color:#475569; margin-bottom:26px; }
+  .card { display:flex; gap:20px; background:#fff; border-radius:16px; padding:22px 24px; margin-bottom:16px;
+          box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:8px solid #cbd5e1; }
+  .ic  { font-size:40px; width:56px; text-align:center; flex-shrink:0; }
+  .n   { font-size:13px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-bottom:2px; }
+  .h   { font-size:21px; font-weight:800; margin-bottom:6px; }
+  .p   { font-size:16px; line-height:1.5; color:#334155; }
+  .pill { display:inline-block; background:#ecfdf5; border:1px solid #6ee7b7; color:#065f46;
+          font-family:Consolas,monospace; font-size:13px; padding:3px 9px; border-radius:8px; margin:4px 4px 0 0; }
+  .warn { background:#fef2f2; border-color:#fca5a5; color:#991b1b; }
+  .gold { background:#fef9c3; border-color:#fde047; color:#854d0e; }
+  b { color:#0f172a; }
+  .c1{border-color:#3b82f6}.c2{border-color:#ef4444}.c3{border-color:#f59e0b}.c4{border-color:#f59e0b}
+  .c5{border-color:#8b5cf6}.c6{border-color:#8b5cf6}.c7{border-color:#f59e0b}.c8{border-color:#22c55e}
+</style></head><body>
+
+  <h1>🧾 Signing up — what really happens</h1>
+  <div class="lead">Follow your sign-up form as it travels through the app. Endpoint: <b>POST /api/auth/register</b></div>
+
+  <div class="card c1"><div class="ic">📝</div><div>
+    <div class="n">STEP 1 — YOU</div>
+    <div class="h">You fill the form and hit "Sign Up"</div>
+    <div class="p">Your browser packs your details into a little JSON parcel and mails it to the app.</div>
+    <span class="pill">fullName</span><span class="pill">email</span><span class="pill">username</span><span class="pill">password</span><span class="pill">department</span>
+  </div></div>
+
+  <div class="card c2"><div class="ic">🚪</div><div>
+    <div class="n">STEP 2 — THE SECURITY GATE</div>
+    <div class="h">The guard waves it straight through</div>
+    <div class="p">Sign-up is a <b>public door</b> — you obviously don't need to be logged in to make an account. So no pass is checked here.</div>
+  </div></div>
+
+  <div class="card c3"><div class="ic">🔎</div><div>
+    <div class="n">STEP 3 — THE FRONT DESK (controller)</div>
+    <div class="h">"Is your form filled in correctly?"</div>
+    <div class="p">Every field must be filled, and the email must look like a real email. If not, it's handed back to you unchanged.<br>Also: every new signup starts as a normal <b>EMPLOYEE</b> (not an admin).</div>
+    <span class="pill warn">✗ blank field or bad email → 400 Bad Request</span>
+  </div></div>
+
+  <div class="card c4"><div class="ic">🙅</div><div>
+    <div class="n">STEP 4 — THE MEMBERS LIST (service)</div>
+    <div class="h">"Is this username or email already taken?"</div>
+    <div class="p">The app checks the existing members. If someone already uses that username or email, you're stopped right here.</div>
+    <span class="pill warn">✗ already exists → 409 Conflict</span>
+  </div></div>
+
+  <div class="card c5"><div class="ic">🔒</div><div>
+    <div class="n">STEP 5 — THE SHREDDER (password hashing)</div>
+    <div class="h">Your password gets scrambled, forever</div>
+    <div class="p">The app <b>never</b> keeps your real password. It scrambles it into a fingerprint that <b>can't be un-scrambled</b>. Only the fingerprint is saved.</div>
+    <span class="pill">"secret123"</span> ➜ <span class="pill">$2a$10$k7Q…9fD (bcrypt hash)</span>
+  </div></div>
+
+  <div class="card c6"><div class="ic">💾</div><div>
+    <div class="n">STEP 6 — THE DATABASE</div>
+    <div class="h">Your account is written down</div>
+    <div class="p">A new row is saved in the <b>users</b> table (name, email, username, the scrambled password, role, department). You now officially exist, with your own ID.</div>
+  </div></div>
+
+  <div class="card c7"><div class="ic">🎟️</div><div>
+    <div class="n">STEP 7 — THE TICKET BOOTH</div>
+    <div class="h">You're handed two tickets, so you don't log in again</div>
+    <div class="p"><b>Access ticket (JWT):</b> a short-lived pass you show on every future request.<br>
+    <b>Refresh ticket:</b> a long-lived cookie the browser keeps, to quietly get fresh passes later. It's <b>HttpOnly</b>, so scripts and hackers can't read it.</div>
+  </div></div>
+
+  <div class="card c8"><div class="ic">✅</div><div>
+    <div class="n">STEP 8 — DONE</div>
+    <div class="h">Registered AND already logged in</div>
+    <div class="p">The app replies <b>201 Created</b>. The response carries your access ticket + who you are; the refresh ticket rides along as a cookie. No separate login needed.</div>
+    <span class="pill gold">201 Created + access token + refresh cookie</span>
+  </div></div>
+
+</body></html>

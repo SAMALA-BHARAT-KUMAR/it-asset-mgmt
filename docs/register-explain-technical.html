@@ -1,0 +1,219 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1180px; background:#f1f5f9; font-family:"Segoe UI",Arial,sans-serif; color:#0f172a; padding:34px 40px; }
+  h1 { font-size:30px; margin-bottom:6px; }
+  .lead { font-size:16px; color:#475569; margin-bottom:12px; }
+  .legend { font-size:13px; color:#64748b; margin-bottom:24px; }
+  .legend b { color:#0f172a; }
+
+  .card { display:flex; gap:20px; background:#fff; border-radius:16px; padding:20px 24px; margin-bottom:14px;
+          box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:8px solid #cbd5e1; }
+  .ic  { font-size:34px; width:52px; text-align:center; flex-shrink:0; padding-top:4px; }
+  .body{ flex:1; }
+  .n   { font-size:12px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-bottom:3px; }
+  .h   { font-size:19px; font-weight:800; margin-bottom:6px; }
+  .p   { font-size:15px; line-height:1.55; color:#334155; margin-bottom:8px; }
+
+  /* the "what object is born here" chip */
+  .obj { display:inline-block; background:#eef2ff; border:1px solid #a5b4fc; color:#3730a3;
+         font-family:Consolas,monospace; font-size:12px; font-weight:700; padding:2px 9px; border-radius:7px; margin:2px 6px 2px 0; }
+  .obj::before { content:"🆕 "; }
+  .call{ display:inline-block; background:#f8fafc; border:1px solid #cbd5e1; color:#334155;
+         font-family:Consolas,monospace; font-size:12px; padding:2px 9px; border-radius:7px; margin:2px 4px 2px 0; }
+
+  pre { background:#0f172a; color:#e2e8f0; font-family:Consolas,monospace; font-size:13px; line-height:1.5;
+        padding:12px 15px; border-radius:10px; overflow:auto; margin:6px 0; }
+  .k { color:#7dd3fc; }   /* json key   */
+  .s { color:#86efac; }   /* string val  */
+  .c { color:#64748b; font-style:italic; }  /* comment */
+
+  .warn { display:inline-block; background:#fef2f2; border:1px solid #fca5a5; color:#991b1b;
+          font-family:Consolas,monospace; font-size:12px; padding:2px 9px; border-radius:7px; margin:4px 4px 0 0; }
+  .gold { background:#fef9c3 !important; border-color:#fde047 !important; color:#854d0e !important; }
+  b { color:#0f172a; }
+  code { font-family:Consolas,monospace; font-size:14px; background:#f1f5f9; padding:1px 5px; border-radius:5px; color:#be123c; }
+
+  .c1{border-color:#3b82f6}.c2{border-color:#0ea5e9}.c3{border-color:#ef4444}.c4{border-color:#f59e0b}
+  .c5{border-color:#f59e0b}.c6{border-color:#8b5cf6}.c7{border-color:#8b5cf6}.c8{border-color:#8b5cf6}
+  .c9{border-color:#22c55e}.c10{border-color:#22c55e}
+
+  .summary { background:#0f172a; color:#e2e8f0; border-radius:16px; padding:22px 26px; margin-top:22px; }
+  .summary h2 { font-size:19px; margin-bottom:14px; color:#fff; }
+  .chain { font-family:Consolas,monospace; font-size:14px; line-height:2.2; }
+  .chain .o { background:#312e81; color:#c7d2fe; padding:3px 10px; border-radius:7px; }
+  .chain .arrow { color:#64748b; padding:0 8px; }
+</style></head><body>
+
+  <h1>🧾 Sign-up, the technical walk-through</h1>
+  <div class="lead">The <b>same</b> journey as the simple diagram — but this time with the real Java class names, which method calls which, and the exact data at every hop. Endpoint: <b>POST /api/auth/register</b></div>
+  <div class="legend"><span class="obj" style="margin:0">Object born here</span> = a brand-new Java object is created at this step. &nbsp;·&nbsp; <b>Order matters:</b> read top to bottom, that's the exact order objects come to life.</div>
+
+  <!-- 1 -->
+  <div class="card c1"><div class="ic">📨</div><div class="body">
+    <div class="n">STEP 1 — THE BROWSER SENDS RAW JSON</div>
+    <div class="h">Your form fields leave as plain text</div>
+    <div class="p">At this moment there is <b>no Java object yet</b> — just text travelling over the wire. This is the exact body that arrives:</div>
+<pre><span class="c">// POST /api/auth/register   Content-Type: application/json</span>
+{
+  <span class="k">"fullName"</span>:   <span class="s">"Asha Rao"</span>,
+  <span class="k">"email"</span>:      <span class="s">"asha@acme.com"</span>,
+  <span class="k">"username"</span>:   <span class="s">"asha"</span>,
+  <span class="k">"password"</span>:   <span class="s">"secret123"</span>,
+  <span class="k">"department"</span>: <span class="s">"Finance"</span>
+}</pre>
+  </div></div>
+
+  <!-- 2 -->
+  <div class="card c2"><div class="ic">📦</div><div class="body">
+    <div class="n">STEP 2 — JACKSON TURNS JSON INTO THE FIRST OBJECT</div>
+    <div class="h">The JSON becomes a <code>RegisterRequest</code> (the input DTO)</div>
+    <div class="p">Spring's JSON reader (Jackson) matches each JSON key to a field of the <code>RegisterRequest</code> record and builds it. This is the <b>first object created</b>. A DTO ("Data Transfer Object") is just a typed mailbox for incoming data — nothing more.</div>
+    <span class="obj">RegisterRequest req</span>
+    <div class="p" style="margin-top:8px"><b>What type does each value become?</b> In JSON every value is just text. Jackson reads it into the record's declared types — here, all five are Java <code>String</code>:</div>
+<pre><span class="c">// the record IS the type definition — field name : type</span>
+record RegisterRequest(
+    <b style="color:#7dd3fc">String</b> fullName,
+    <b style="color:#7dd3fc">String</b> email,
+    <b style="color:#7dd3fc">String</b> username,
+    <b style="color:#7dd3fc">String</b> password,
+    <b style="color:#7dd3fc">String</b> department
+) {}
+
+<span class="c">// declared on the controller method:</span>
+register(<b style="color:#fca5a5">@Valid @RequestBody RegisterRequest req</b>)</pre>
+  </div></div>
+  </div></div>
+
+  <!-- 3 -->
+  <div class="card c3"><div class="ic">🔎</div><div class="body">
+    <div class="n">STEP 3 — @Valid CHECKS THE DTO (before any of your code runs)</div>
+    <div class="h">Are the fields filled and is the email shaped like an email?</div>
+    <div class="p">The <code>@NotBlank</code> / <code>@Email</code> rules written on <code>RegisterRequest</code> are enforced <b>now</b>, automatically. If anything fails, the controller body is never entered — <code>GlobalExceptionHandler</code> replies for you.</div>
+    <span class="warn">✗ blank field / bad email → 400 Bad Request</span>
+  </div></div>
+
+  <!-- 4 -->
+  <div class="card c4"><div class="ic">🏗️</div><div class="body">
+    <div class="n">STEP 4 — THE CONTROLLER BUILDS A User ENTITY</div>
+    <div class="h"><code>AuthController.register()</code> creates a <code>new User()</code></div>
+    <div class="p">The controller copies each field from the DTO onto a fresh <code>User</code> entity — the object that maps to a database row — and stamps the default role. <b>Note: the password is NOT copied here.</b> The raw password stays as a separate string, on its way to the hasher.</div>
+    <div class="p"><b>Types change here.</b> The Strings from the DTO stay Strings, but two new types appear: the role is a <code>Role</code> <b>enum</b> (not text), and the <code>id</code> will be a <code>Long</code> the database fills in later:</div>
+<pre><span class="c">// User entity — field : type</span>
+Long   id;           <span class="c">// empty now, DB sets it at save (Step 7)</span>
+String fullName; String email; String username;
+String passwordHash; <span class="c">// empty now, set by the hasher (Step 6)</span>
+String department;
+<b style="color:#c4b5fd">Role</b>   role;         <span class="c">// enum: EMPLOYEE / ADMIN, stored as text</span></pre>
+    <span class="obj">User user</span>
+<pre>User user = <b style="color:#fca5a5">new User()</b>;
+user.setFullName(req.fullName());
+user.setEmail(req.email());
+user.setUsername(req.username());
+user.setDepartment(req.department());
+user.setRole(Role.EMPLOYEE);   <span class="c">// everyone starts as EMPLOYEE</span>
+
+User saved = userService.registerUser(user, <b style="color:#7dd3fc">req.password()</b>);</pre>
+  </div></div>
+
+  <!-- 5 -->
+  <div class="card c5"><div class="ic">🙅</div><div class="body">
+    <div class="n">STEP 5 — THE SERVICE ASKS THE DATABASE: "already taken?"</div>
+    <div class="h"><code>UserService.registerUser()</code> → <code>UserRepository</code></div>
+    <div class="p">The controller handed off to the service (business rules live here, not in the controller). The service asks the repository — the object that talks to the DB — two yes/no questions:</div>
+    <span class="call">repository.existsByUsername(...)</span><span class="call">repository.existsByEmail(...)</span>
+    <div class="p" style="margin-top:8px">If either is true it throws <code>DuplicateResourceException</code>, which becomes a clean 409.</div>
+    <span class="warn">✗ username/email already exists → 409 Conflict</span>
+  </div></div>
+
+  <!-- 6 -->
+  <div class="card c6"><div class="ic">🔒</div><div class="body">
+    <div class="n">STEP 6 — THE PASSWORD IS HASHED (still in the service)</div>
+    <div class="h"><code>passwordEncoder.encode()</code> scrambles it one-way</div>
+    <div class="p">Only now is a password put on the <code>User</code> — and it's the <b>bcrypt hash</b>, never the real one. This is why the raw password rode separately: so it could never be accidentally stored.</div>
+<pre>user.setPasswordHash(passwordEncoder.encode(rawPassword));
+<span class="c">// "secret123"  ➜  "$2a$10$k7Q…9fD"   (can't be reversed)</span></pre>
+  </div></div>
+
+  <!-- 7 -->
+  <div class="card c7"><div class="ic">💾</div><div class="body">
+    <div class="n">STEP 7 — SAVE, AND GET AN ID BACK</div>
+    <div class="h"><code>repository.save(user)</code> → row in the <code>users</code> table</div>
+    <div class="p">JPA runs an <code>INSERT</code>. The database generates the primary key, and <code>save()</code> hands back the <b>same User but now with its <code>id</code> filled in</b>. The service returns this saved user to the controller.</div>
+    <span class="call">return repository.save(user); &nbsp;→&nbsp; User(id=42, …)</span>
+  </div></div>
+
+  <!-- 8 -->
+  <div class="card c8"><div class="ic">🎟️</div><div class="body">
+    <div class="n">STEP 8 — THE REFRESH TOKEN OBJECT IS CREATED</div>
+    <div class="h"><code>RefreshTokenService.create()</code> makes a <code>new RefreshToken()</code></div>
+    <div class="p">Back in the controller. A long-lived token (a random UUID) is created, given an expiry, and saved to the DB. This is what lets you stay logged in without re-typing your password.</div>
+    <span class="obj">RefreshToken refresh</span>
+<pre>RefreshToken refresh = refreshTokenService.create(saved.getUsername());
+<span class="c">// new RefreshToken() → token = random UUID, saved to DB</span></pre>
+  </div></div>
+
+  <!-- 9 -->
+  <div class="card c9"><div class="ic">🔑</div><div class="body">
+    <div class="n">STEP 9 — THE ACCESS TOKEN + THE OUTPUT DTO ARE BUILT</div>
+    <div class="h"><code>authResponse()</code> mints a JWT and packs an <code>AuthResponse</code></div>
+    <div class="p">The private helper does three things: (1) <code>jwtUtil.generateToken()</code> creates a signed <b>access token</b> string; (2) it builds a <code>ResponseCookie</code> for the refresh token — <b>HttpOnly</b>, so JavaScript can't read it; (3) it creates the <b>output DTO</b> that will become the JSON reply.</div>
+    <span class="obj">String accessToken (JWT)</span><span class="obj">ResponseCookie</span><span class="obj">AuthResponse</span>
+<pre>String access = jwtUtil.generateToken(user.getUsername(), role);
+ResponseCookie cookie = cookie(refresh.getToken(), maxAge);
+return ResponseEntity.status(<b style="color:#86efac">201</b>)
+    .header(SET_COOKIE, cookie.toString())
+    .body(<b style="color:#fca5a5">new AuthResponse(access, user.getUsername(), role)</b>);</pre>
+  </div></div>
+
+  <!-- 10 -->
+  <div class="card c10"><div class="ic">✅</div><div class="body">
+    <div class="n">STEP 10 — BACK TO JSON, INTO YOUR HANDS</div>
+    <div class="h">Jackson turns <code>AuthResponse</code> into the reply</div>
+    <div class="p">The exact reverse of Step 2: the output DTO is serialized to JSON. Notice the <b>refresh token is NOT in the body</b> — it rides only in the Set-Cookie header. You are registered <b>and</b> already logged in.</div>
+    <span class="warn gold">201 Created</span>
+<pre><span class="c">// Response headers</span>
+Set-Cookie: <span class="k">refreshToken</span>=<span class="s">a1b2-…</span>; HttpOnly; Path=/api/auth
+
+<span class="c">// Response body (from AuthResponse)</span>
+{
+  <span class="k">"accessToken"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9…"</span>,
+  <span class="k">"username"</span>:    <span class="s">"asha"</span>,
+  <span class="k">"role"</span>:        <span class="s">"EMPLOYEE"</span>
+}</pre>
+  </div></div>
+
+  <!-- TYPE TABLE -->
+  <div class="card" style="border-color:#0ea5e9; display:block">
+    <div class="n">🧩 TYPE JOURNEY — the same value, changing shape</div>
+    <div class="h" style="margin-bottom:12px">What type is your data at each hop?</div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px">
+      <tr style="text-align:left; color:#64748b; font-weight:800">
+        <th style="padding:6px 10px">Your data</th>
+        <th style="padding:6px 10px">In JSON (Step 1)</th>
+        <th style="padding:6px 10px">RegisterRequest (Step 2)</th>
+        <th style="padding:6px 10px">User entity (Step 4-7)</th>
+        <th style="padding:6px 10px">AuthResponse (Step 10)</th>
+      </tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>username</b></td><td style="padding:6px 10px">text</td><td style="padding:6px 10px"><code>String</code></td><td style="padding:6px 10px"><code>String</code></td><td style="padding:6px 10px"><code>String</code> ✔</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>password</b></td><td style="padding:6px 10px">text</td><td style="padding:6px 10px"><code>String</code></td><td style="padding:6px 10px"><code>String</code> (bcrypt hash)</td><td style="padding:6px 10px">— <span style="color:#991b1b">never returned</span></td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>role</b></td><td style="padding:6px 10px">— (not sent)</td><td style="padding:6px 10px">—</td><td style="padding:6px 10px"><code>Role</code> enum</td><td style="padding:6px 10px"><code>String</code> (role.name())</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>id</b></td><td style="padding:6px 10px">—</td><td style="padding:6px 10px">—</td><td style="padding:6px 10px"><code>Long</code> (DB-generated)</td><td style="padding:6px 10px">— (not exposed)</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>access token</b></td><td style="padding:6px 10px">—</td><td style="padding:6px 10px">—</td><td style="padding:6px 10px">— (made from user)</td><td style="padding:6px 10px"><code>String</code> (signed JWT)</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:6px 10px"><b>refresh token</b></td><td style="padding:6px 10px">—</td><td style="padding:6px 10px">—</td><td style="padding:6px 10px"><code>String</code> UUID + <code>Instant</code> expiry</td><td style="padding:6px 10px"><code>ResponseCookie</code> (header, not body)</td></tr>
+    </table>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <h2>🧬 Objects created, in exact order</h2>
+    <div class="chain">
+      <span class="o">RegisterRequest</span><span class="arrow">→</span><span class="o">User</span><span class="arrow">→</span><span class="o">(bcrypt hash)</span><span class="arrow">→</span><span class="o">User saved (has id)</span><span class="arrow">→</span><span class="o">RefreshToken</span><span class="arrow">→</span><span class="o">JWT access token</span><span class="arrow">→</span><span class="o">ResponseCookie</span><span class="arrow">→</span><span class="o">AuthResponse</span>
+    </div>
+    <h2 style="margin-top:20px">📞 Who calls whom</h2>
+    <div class="chain" style="font-size:13px; line-height:1.9">
+      Browser <span class="arrow">→</span> <span class="o">AuthController.register()</span> <span class="arrow">→</span> <span class="o">UserService.registerUser()</span> <span class="arrow">→</span> <span class="o">UserRepository</span> (existsBy…, save)<br>
+      <span class="o">AuthController</span> <span class="arrow">→</span> <span class="o">RefreshTokenService.create()</span> &nbsp;·&nbsp; <span class="o">AuthController.authResponse()</span> <span class="arrow">→</span> <span class="o">JwtUtil.generateToken()</span>
+    </div>
+  </div>
+
+</body></html>

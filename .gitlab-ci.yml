@@ -1,0 +1,72 @@
+# Monorepo: 3 services in one repo. Each service only builds when ITS files
+# (or the shared root pipeline/compose) change — not all three every push.
+stages: [build, image]
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+# ---------- templates ----------
+.build:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  cache:
+    key: maven
+    paths: [.m2/repository]
+  script:
+    - cd $SERVICE && mvn -B verify
+  artifacts:
+    paths: [$SERVICE/target/*.jar]
+    expire_in: 1 week
+
+.image:
+  stage: image
+  image: docker:27
+  services: [docker:27-dind]
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE:latest ./$SERVICE
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE:latest
+
+# ---------- assetservice ----------
+build:assetservice:
+  extends: .build
+  variables: {SERVICE: assetservice}
+  rules:
+    - changes: [assetservice/**/*, .gitlab-ci.yml]
+image:assetservice:
+  extends: .image
+  variables: {SERVICE: assetservice}
+  needs: ["build:assetservice"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [assetservice/**/*, .gitlab-ci.yml]
+
+# ---------- discovery-server ----------
+build:discovery-server:
+  extends: .build
+  variables: {SERVICE: discovery-server}
+  rules:
+    - changes: [discovery-server/**/*, .gitlab-ci.yml]
+image:discovery-server:
+  extends: .image
+  variables: {SERVICE: discovery-server}
+  needs: ["build:discovery-server"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [discovery-server/**/*, .gitlab-ci.yml]
+
+# ---------- config-server ----------
+build:config-server:
+  extends: .build
+  variables: {SERVICE: config-server}
+  rules:
+    - changes: [config-server/**/*, .gitlab-ci.yml]
+image:config-server:
+  extends: .image
+  variables: {SERVICE: config-server}
+  needs: ["build:config-server"]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes: [config-server/**/*, .gitlab-ci.yml]

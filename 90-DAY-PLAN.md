@@ -31,6 +31,25 @@
 
 ---
 
+## Production-grade standards (apply to EVERY day, not optional)
+
+This is not a toy build — every module is delivered to production standard. These rules override any "quick/local" shortcut implied by a day's task. A day's Checkpoint is not green until it also meets these:
+
+- **No plaintext secrets, ever.** JWT signing key, DB passwords, API keys, Claude key → environment variables locally, and a secrets manager in deploy (Spring Cloud Config + encrypted values via `{cipher}`, or Vault). Never commit a secret to git.
+- **High availability for infra.** discovery-server, config-server, gateway run as **2+ instances** in deploy (single instance only while developing on the laptop). No single point of failure.
+- **TLS everywhere in deploy.** HTTPS on the gateway (the only public entry); internal service-to-service and dashboards behind TLS. HTTP allowed only on the local dev machine.
+- **Everything authenticated.** Eureka dashboard, config-server, actuator endpoints → secured with credentials, never publicly open. Only the gateway is internet-facing; all business services sit on a private network.
+- **DB schema via migrations.** Flyway (or Liquibase) from Day 4 onward — never `ddl-auto=update` in any environment except throwaway local. Every schema change is a versioned, reviewed migration.
+- **Health + readiness on every service.** `spring-boot-starter-actuator`, liveness/readiness probes, so the orchestrator restarts/reroutes automatically.
+- **Config externalized, not baked in.** Nothing environment-specific hardcoded — all of it comes from config-server per Spring profile (`local` / `docker` / `prod`).
+- **Observability by default.** Structured JSON logs with a correlation/trace id on every service, metrics via Micrometer, distributed tracing (Zipkin, Day 44). If it's in prod, you can trace and measure it.
+- **CI + containers.** Every service builds to a slim, non-root container image; a CI pipeline runs the tests on every push before anything is deployable.
+- **Graceful failure.** Timeouts, retries, and circuit breakers on every cross-service call (Days 42–46) — no call can hang forever or cascade a failure.
+
+Local dev may relax HA/TLS/secrets-manager for speed, but the code and config must be **written so the only difference between local and prod is the profile** — never a code change.
+
+---
+
 # Phase 0 — Foundations
 **Week 1 · Days 1–7** — Toolchain, Java refresher, Spring Boot basics, first Asset CRUD.
 
@@ -214,13 +233,15 @@
 
 ### DAY 29 · Sat, 03 Oct 2026 — Discovery server (Eureka) ⬜
 - **Build:** New module `discovery-server`, `spring-cloud-starter-netflix-eureka-server`, `@EnableEurekaServer`, port 8761, `register-with-eureka=false`, `fetch-registry=false`.
-- **Study:** Service discovery pattern — client-side vs server-side.
-- **Checkpoint:** `discovery-server` runs; Eureka dashboard at `localhost:8761` shows empty instance list.
+- **Prod-grade:** Secure the dashboard + `/eureka/**` with `spring-boot-starter-security` (basic-auth creds from env/config, never open). Add `spring-boot-starter-actuator` liveness/readiness. Deploy as **2 peer-aware Eureka instances** (each registers with the other) — the registry itself must not be a single point of failure. TLS in deploy.
+- **Study:** Service discovery pattern — client-side vs server-side; Eureka peer replication + self-preservation.
+- **Checkpoint:** `discovery-server` runs; dashboard requires auth; two peers replicate each other's registry; `localhost:8761` shows empty instance list.
 
 ### DAY 30 · Sun, 04 Oct 2026 — Config server (Spring Cloud Config) ⬜
-- **Build:** New module `config-server`, `@EnableConfigServer`, port 8888, backed by a git repo (or `native`) holding shared `application.yml` + per-service files.
-- **Study:** 12-factor config; Spring `Environment`/`PropertySource` resolution order.
-- **Checkpoint:** `localhost:8888/application/default` returns JSON.
+- **Build:** New module `config-server`, `@EnableConfigServer`, port 8888, backed by a **private git repo** holding shared `application.yml` + per-service files.
+- **Prod-grade:** Secure config-server with auth (creds from env, never open) — it hands out every service's config. **Encrypt secrets** in the config repo with `{cipher}` (Spring's `/encrypt` endpoint) so no secret is ever plaintext in git. Actuator liveness/readiness. Deploy **2+ instances** behind the registry. Clients fail-fast + retry if config-server is briefly down (`spring.cloud.config.fail-fast=true` + retry).
+- **Study:** 12-factor config; Spring `Environment`/`PropertySource` resolution order; config encryption + secret rotation.
+- **Checkpoint:** `localhost:8888/application/default` returns JSON **and requires auth**; a `{cipher}`-encrypted value in the repo is served decrypted to the client; no plaintext secret anywhere in the config repo.
 
 ### DAY 31 · Mon, 05 Oct 2026 — Extract user-auth-service ⬜
 - **Build:** New module `user-auth-service`. Move User/Role, repos, auth controller, JWT filter from monolith. Own Postgres DB `userdb`. Add eureka-client + config-client, `spring.config.import=configserver:...`.

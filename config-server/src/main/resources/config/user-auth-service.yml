@@ -1,0 +1,4 @@
+# Config specific to user-auth-service (Day 31). Served when that service asks for its config.
+# Example only — real DB creds come from env/{cipher} in prod, never plaintext (plan Day 30 prod-grade).
+server:
+  port: 8081

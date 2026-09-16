@@ -1,0 +1,138 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1120px; background:#f1f5f9; font-family:"Segoe UI",Arial,sans-serif; color:#0f172a; padding:34px 40px; }
+  h1 { font-size:28px; margin-bottom:6px; }
+  .lead { font-size:16px; color:#475569; margin-bottom:24px; }
+  .h2 { font-size:16px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin:26px 0 12px; }
+  code { font-family:Consolas,monospace; font-size:14px; background:#f1f5f9; padding:1px 5px; border-radius:5px; color:#be123c; }
+  pre { background:#0f172a; color:#e2e8f0; font-family:Consolas,monospace; font-size:13px; line-height:1.6; padding:12px 15px; border-radius:10px; margin:6px 0; }
+  b { color:#0f172a; }
+  .sig { background:#0f172a; border-radius:14px; padding:24px 28px; font-family:Consolas,monospace; font-size:18px; color:#e2e8f0; line-height:2.3; text-align:center; margin-bottom:6px; }
+  .out { background:#3f2d1a; color:#fdba74; padding:4px 10px; border-radius:8px; border:1px solid #b45309; }
+  .in  { background:#1e2f4d; color:#7dd3fc; padding:4px 10px; border-radius:8px; border:1px solid #2563eb; }
+  .kw  { color:#94a3b8; }
+
+  .card { display:flex; gap:18px; background:#fff; border-radius:14px; padding:18px 22px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:8px solid #cbd5e1; }
+  .ic { font-size:30px; width:46px; text-align:center; flex-shrink:0; padding-top:2px; }
+  .n  { font-size:12px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-bottom:3px; }
+  .hh { font-size:18px; font-weight:800; margin-bottom:6px; }
+  .p  { font-size:14.5px; line-height:1.55; color:#334155; margin-bottom:6px; }
+  .warn { display:inline-block; background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; font-family:Consolas,monospace; font-size:12px; padding:2px 9px; border-radius:7px; margin:4px 4px 0 0; }
+  .c1{border-color:#3b82f6}.c2{border-color:#0ea5e9}.c3{border-color:#8b5cf6}.c4{border-color:#ef4444}.c5{border-color:#f59e0b}.c6{border-color:#22c55e}
+
+  .tl { background:#0f172a; border-radius:14px; padding:22px 26px; color:#e2e8f0; margin-top:8px; }
+  .tl h3 { font-size:17px; color:#fff; margin-bottom:14px; }
+  .step { display:flex; align-items:center; gap:12px; font-family:Consolas,monospace; font-size:13.5px; margin-bottom:9px; }
+  .num { width:24px; height:24px; border-radius:50%; background:#312e81; color:#c7d2fe; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+  .arrow { color:#475569; }
+  .born { background:#1e2f4d; color:#7dd3fc; padding:2px 8px; border-radius:6px; }
+  .borno{ background:#3f2d1a; color:#fdba74; padding:2px 8px; border-radius:6px; }
+  .conv { background:#faf5ff; color:#6b21a8; padding:2px 8px; border-radius:6px; border:1px solid #d8b4fe; }
+</style></head><body>
+
+  <h1>📦 Creating an asset — the two conversions</h1>
+  <div class="lead">The outside world speaks <b>DTOs</b> (JSON shapes). The service &amp; database speak <b>entities</b>. The <b>mapper</b> sits in the middle and does <b>two conversions</b> — DTO→entity on the way in, entity→DTO on the way out. Endpoint: <b>POST /api/assets</b> · <b>ADMIN only</b></div>
+
+  <!-- the one line -->
+  <div class="h2">⓪ THE WHOLE THING IS ONE LINE — READ IT INSIDE-OUT</div>
+  <div class="sig">mapper.<span class="out">toResponse</span>(&nbsp;service.<span style="color:#86efac">create</span>(&nbsp;mapper.<span class="in">toEntity</span>(request)&nbsp;)&nbsp;)</div>
+  <div style="font-size:13px; color:#64748b; margin-bottom:8px; padding-left:2px"><b style="color:#3b82f6">① toEntity</b> DTO→entity &nbsp;·&nbsp; <b style="color:#86efac">② create</b> duplicate-check + save &nbsp;·&nbsp; <b style="color:#f59e0b">③ toResponse</b> entity→DTO. Two of those three are the mapper's conversions.</div>
+
+  <!-- 1: JSON -> DTO -->
+  <div class="h2">① THE JSON BECOMES AN AssetRequest DTO</div>
+  <div style="display:flex; gap:0; align-items:stretch; margin-bottom:8px">
+    <div style="flex:1; background:#0f172a; border-radius:14px 0 0 14px; padding:18px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#7dd3fc; margin-bottom:10px">📨 THE JSON YOU SENT</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.1">{
+  <span style="color:#7dd3fc">"assetTag"</span>: <span style="color:#86efac">"LT-014"</span>,
+  <span style="color:#7dd3fc">"name"</span>: <span style="color:#86efac">"Dell Latitude"</span>,
+  <span style="color:#7dd3fc">"serialNumber"</span>: <span style="color:#86efac">"SN-9931"</span>,
+  <span style="color:#7dd3fc">"status"</span>: <span style="color:#86efac">"AVAILABLE"</span>,
+  <span style="color:#7dd3fc">"categoryId"</span>: <span style="color:#fca5a5">3</span>,
+  <span style="color:#7dd3fc">"locationId"</span>: <span style="color:#fca5a5">7</span>
+}</pre>
+    </div>
+    <div style="display:flex; align-items:center; background:#1e293b; padding:0 8px; color:#fbbf24; font-family:Consolas,monospace; font-size:16px">➜<br>➜</div>
+    <div style="flex:1.1; background:#eef2ff; border:1px solid #a5b4fc; border-radius:0 14px 14px 0; padding:18px 22px">
+      <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#4f46e5; margin-bottom:10px">🆕 AssetRequest OBJECT (1st object born)</div>
+      <pre style="margin:0; background:transparent; padding:0; font-size:14px; line-height:2.1; color:#3730a3">AssetRequest {
+  assetTag     = <span style="color:#059669">"LT-014"</span>
+  name         = <span style="color:#059669">"Dell Latitude"</span>
+  serialNumber = <span style="color:#059669">"SN-9931"</span>
+  status       = <span style="color:#059669">AVAILABLE</span>
+  categoryId   = <span style="color:#b45309">3</span>   <span style="color:#94a3b8">← just a number</span>
+  locationId   = <span style="color:#b45309">7</span>   <span style="color:#94a3b8">← just a number</span>
+}</pre>
+    </div>
+  </div>
+  <div style="font-size:14px; color:#475569; margin-bottom:8px; padding-left:2px">Jackson builds this DTO from the JSON before your method runs (<code>@Valid</code> checks the fields). Notice: category &amp; location are only <b>ids</b> here — plain numbers.</div>
+
+  <!-- 2: signature -->
+  <div class="h2">② THE METHOD LINE — DTO in, DTO out</div>
+  <div class="sig"><span class="kw">public</span> <span class="out">AssetResponse</span> create<span class="kw">(</span><span class="in">@Valid @RequestBody AssetRequest request</span><span class="kw">)</span></div>
+  <div style="font-size:13px; color:#64748b; margin-bottom:8px; padding-left:2px"><b style="color:#f59e0b">OUTPUT</b> = AssetResponse DTO (born last) · <b style="color:#3b82f6">INPUT</b> = AssetRequest DTO (born first). <b>The entity never leaves the building</b> — only DTOs cross the wire.</div>
+
+  <!-- CONVERSION 1 -->
+  <div class="card c3"><div class="ic">🔧</div><div>
+    <div class="n">CONVERSION 1 — <span class="conv">AssetRequest (DTO) → Asset (entity)</span> · mapper.toEntity()</div>
+    <div class="hh">DTO → entity, so the service &amp; DB can work with it</div>
+    <div class="p">Scalar fields copy straight across. But the two <b>id numbers become whole objects</b> — the mapper goes to the DB and fetches the real <code>Category</code> and <code>Location</code> entities (that's why the mapper needs the repositories injected).</div>
+    <pre style="margin:4px 0 0">asset.setCategory(loadCategory(request.categoryId()));  <span style="color:#64748b">// findById(3) → Category entity, or 404</span>
+asset.setLocation(loadLocation(request.locationId())); <span style="color:#64748b">// findById(7) → Location entity (null ok)</span>
+<span style="color:#64748b">// id is NOT set — the DB generates it on save</span></pre>
+    <span class="warn">✗ categoryId 3 doesn't exist → 404 "Category not found: 3"</span>
+  </div></div>
+
+  <!-- 3: service duplicate check -->
+  <div class="card c1"><div class="ic">🔎</div><div>
+    <div class="n">STEP — SERVICE: REJECT DUPLICATES, THEN SAVE</div>
+    <div class="hh"><code>service.create(asset)</code></div>
+    <div class="p">The service only understands entities. It guards the <b>unique</b> fields first: if an asset with this <b>assetTag</b> or <b>serialNumber</b> already exists → reject. Otherwise it saves.</div>
+    <pre style="margin:4px 0 0">if (repository.existsByAssetTag(...))     throw DuplicateResourceException; <span style="color:#64748b">// 409</span>
+if (repository.existsBySerialNumber(...)) throw DuplicateResourceException; <span style="color:#64748b">// 409</span>
+return repository.save(asset);  <span style="color:#64748b">// ✅ new → saved, and now it HAS an id</span></pre>
+    <span class="warn">✗ tag/serial already used → 409 Duplicate</span>
+  </div></div>
+
+  <!-- 4: entity gains id -->
+  <div class="card c5"><div class="ic">🆔</div><div>
+    <div class="n">STEP — THE SAVED ENTITY COMES BACK, NOW WITH AN id</div>
+    <div class="hh">Went in with <code>id = null</code> → comes out with <code>id = 14</code></div>
+    <div class="p">The database generated the primary key on save. This returned <b>Asset entity</b> is what the service hands back to the controller — richer than what went in.</div>
+  </div></div>
+
+  <!-- CONVERSION 2 -->
+  <div class="card c6"><div class="ic">📤</div><div>
+    <div class="n">CONVERSION 2 — <span class="conv">Asset (entity) → AssetResponse (DTO)</span> · mapper.toResponse()</div>
+    <div class="hh">entity → DTO, so the client gets clean, richer JSON</div>
+    <div class="p">A <b>different</b> DTO than the request. It carries the new <b>id</b>, and it flattens each linked object into <b>id + human-readable name</b> — not the bare numbers the client sent.</div>
+    <pre style="margin:4px 0 0">new AssetResponse(
+  asset.getId(),                 <span style="color:#64748b">// 14  ← brand new</span>
+  asset.getAssetTag(), asset.getName(),
+  category.getId(), category.getName(),   <span style="color:#64748b">// 3, "Laptop"  ← name added</span>
+  location.getId(), label(location),      <span style="color:#64748b">// 7, "HQ / 2 / 204"</span>
+  asset.getSerialNumber(), asset.getStatus());</pre>
+  </div></div>
+
+  <!-- request vs response DTO -->
+  <div class="h2">🔁 WHY TWO DIFFERENT DTOs?</div>
+  <div style="background:#fff; border-radius:14px; padding:14px 18px; box-shadow:0 1px 3px rgba(0,0,0,.08); margin-bottom:8px; overflow:auto">
+    <table style="width:100%; border-collapse:collapse; font-size:13.5px">
+      <tr style="text-align:left; color:#64748b; font-weight:800"><th style="padding:7px 10px"></th><th style="padding:7px 10px">AssetRequest (in)</th><th style="padding:7px 10px">AssetResponse (out)</th></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px"><b>id</b></td><td style="padding:7px 10px">— none (DB makes it)</td><td style="padding:7px 10px">✅ the new id</td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px"><b>category</b></td><td style="padding:7px 10px">categoryId only</td><td style="padding:7px 10px">categoryId <b>+ categoryName</b></td></tr>
+      <tr style="border-top:1px solid #e2e8f0"><td style="padding:7px 10px"><b>location</b></td><td style="padding:7px 10px">locationId only</td><td style="padding:7px 10px">locationId <b>+ label</b> (building/floor/room)</td></tr>
+    </table>
+  </div>
+
+  <!-- timeline -->
+  <div class="tl">
+    <h3>🕐 The whole create, start to finish</h3>
+    <div class="step"><span class="num">1</span> POST /api/assets (ADMIN) with JSON → Jackson builds <span class="born">AssetRequest</span></div>
+    <div class="step"><span class="num">2</span> <span class="arrow">mapper.toEntity →</span> <span class="conv">Asset entity</span> (ids → real Category/Location, or 404)</div>
+    <div class="step"><span class="num">3</span> <span class="arrow">service.create →</span> duplicate assetTag/serial? → <b style="color:#f87171">409</b>, else <b>save</b></div>
+    <div class="step"><span class="num">4</span> saved <span class="borno">Asset entity</span> comes back — now with a generated <b>id</b></div>
+    <div class="step"><span class="num">5</span> <span class="arrow">mapper.toResponse →</span> <span class="conv">AssetResponse</span> → <b style="color:#4ade80">201 Created</b> as JSON</div>
+  </div>
+
+</body></html>
