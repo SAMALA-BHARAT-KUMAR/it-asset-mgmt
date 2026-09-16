@@ -10,12 +10,12 @@ stages: [build]
 variables:
   DOCKER_BUILDKIT: "1"
   # HARBOR_URL / HARBOR_USERNAME / HARBOR_PASSWORD come from GitLab CI variables
-  # (likely group-inherited). HARBOR_PROJECT is this project's Harbor project name.
+  # (likely group-inherited). Harbor project "micro-services" is hardcoded below.
 
 .buildpush:
   stage: build
   variables:
-    IMAGE: "$HARBOR_URL/$HARBOR_PROJECT/$SERVICE"
+    IMAGE: "$HARBOR_URL/micro-services/$SERVICE"
   before_script:
     - docker info
     - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_URL"
