@@ -1,27 +1,32 @@
-# Monorepo: 3 services in one repo. Each service only builds when ITS files
-# (or the shared root pipeline/compose) change — not all three every push.
+# Monorepo: 3 services in one repo. Runner is a SHELL executor (runs jobs
+# directly on the runner host's bash) — so `image:`/`services:` are ignored and
+# tools must exist on the host. We use the committed ./mvnw wrapper (needs only
+# a JDK, self-installs Maven). Each service builds only when ITS files change.
 stages: [build, image]
 
 variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  # absolute repo-local Maven cache so `cd $SERVICE` doesn't misplace it
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 # ---------- templates ----------
 .build:
   stage: build
-  image: maven:3.9-eclipse-temurin-21
   cache:
     key: maven
     paths: [.m2/repository]
+  # ponytail: -DskipTests — shell runner has no Postgres and assetservice tests
+  # need a real DB. Add a DB-backed test job (Testcontainers / service Postgres
+  # on a Docker runner) when one is available.
   script:
-    - cd $SERVICE && mvn -B verify
+    - cd $SERVICE && ./mvnw -B -DskipTests package
   artifacts:
     paths: [$SERVICE/target/*.jar]
     expire_in: 1 week
 
 .image:
   stage: image
-  image: docker:27
-  services: [docker:27-dind]
+  # ponytail: uses the host's docker (shell runner). Needs docker installed on
+  # the runner host + registry login. Move to a docker/kaniko runner if absent.
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
   script:
