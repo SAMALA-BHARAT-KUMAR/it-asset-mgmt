@@ -1,96 +1,43 @@
-# Monorepo: 3 services in one repo. Runner is a SHELL executor (runs jobs
-# directly on the runner host's bash) — so `image:`/`services:` are ignored and
-# tools must exist on the host. We use the committed ./mvnw wrapper (needs only
-# a JDK, self-installs Maven). Each service builds only when ITS files change.
-stages: [build, image]
+# Monorepo, 3 services. House pattern (see volpay/vigilant): Maven runs INSIDE
+# each Dockerfile, so the runner only needs docker — no JDK/Maven on the host.
+# Each service builds+pushes only when ITS files change. Images go to Harbor.
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+stages: [build]
 
 variables:
-  # absolute repo-local Maven cache so `cd $SERVICE` doesn't misplace it
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  DOCKER_BUILDKIT: "1"
+  # HARBOR_URL / HARBOR_USERNAME / HARBOR_PASSWORD come from GitLab CI variables
+  # (likely group-inherited). HARBOR_PROJECT is this project's Harbor project name.
 
-# ---------- templates ----------
-.build:
+.buildpush:
   stage: build
-  cache:
-    key: maven
-    paths: [.m2/repository]
-  # Shell runner doesn't export JAVA_HOME. Resolve it: valid $JAVA_HOME →
-  # java on PATH → common JVM install dirs. Fail loudly if the host has no JDK.
-  before_script:
-    - |
-      if [ -z "$JAVA_HOME" ] || [ ! -x "$JAVA_HOME/bin/java" ]; then
-        if command -v java >/dev/null 2>&1; then
-          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
-        else
-          for d in /usr/lib/jvm/*21* /usr/lib/jvm/java-21* /usr/lib/jvm/default-java /opt/java*; do
-            [ -x "$d/bin/java" ] && export JAVA_HOME="$d" && break
-          done
-        fi
-      fi
-      [ -x "$JAVA_HOME/bin/java" ] || { echo "ERROR: no JDK 21 on runner host $(hostname). Install one or set JAVA_HOME."; exit 1; }
-      export PATH="$JAVA_HOME/bin:$PATH"
-      echo "Using JAVA_HOME=$JAVA_HOME"; java -version
-  # ponytail: -DskipTests — shell runner has no Postgres and assetservice tests
-  # need a real DB. Add a DB-backed test job (Testcontainers / service Postgres
-  # on a Docker runner) when one is available.
-  script:
-    - cd $SERVICE && ./mvnw -B -DskipTests package
-  artifacts:
-    paths: [$SERVICE/target/*.jar]
-    expire_in: 1 week
-
-.image:
-  stage: image
-  # Pushes to Harbor. Set HARBOR_REGISTRY / HARBOR_PROJECT / HARBOR_USERNAME /
-  # HARBOR_PASSWORD as CI/CD variables. Uses the host's docker (shell runner) —
-  # needs docker installed on the runner host.
   variables:
-    IMAGE: "$HARBOR_REGISTRY/$HARBOR_PROJECT/$SERVICE"
+    IMAGE: "$HARBOR_URL/$HARBOR_PROJECT/$SERVICE"
   before_script:
-    - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_REGISTRY"
+    - docker info
+    - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_URL"
   script:
-    - docker build -t $IMAGE:$CI_COMMIT_SHORT_SHA -t $IMAGE:latest ./$SERVICE
-    - docker push $IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $IMAGE:latest
+    - docker build -t "$IMAGE:$CI_COMMIT_SHORT_SHA" -t "$IMAGE:latest" ./$SERVICE
+    - docker push "$IMAGE:$CI_COMMIT_SHORT_SHA"
+    - docker push "$IMAGE:latest"
 
-# ---------- assetservice ----------
-build:assetservice:
-  extends: .build
+buildpush:assetservice:
+  extends: .buildpush
   variables: {SERVICE: assetservice}
   rules:
     - changes: [assetservice/**/*, .gitlab-ci.yml]
-image:assetservice:
-  extends: .image
-  variables: {SERVICE: assetservice}
-  needs: ["build:assetservice"]
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes: [assetservice/**/*, .gitlab-ci.yml]
 
-# ---------- discovery-server ----------
-build:discovery-server:
-  extends: .build
+buildpush:discovery-server:
+  extends: .buildpush
   variables: {SERVICE: discovery-server}
   rules:
     - changes: [discovery-server/**/*, .gitlab-ci.yml]
-image:discovery-server:
-  extends: .image
-  variables: {SERVICE: discovery-server}
-  needs: ["build:discovery-server"]
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes: [discovery-server/**/*, .gitlab-ci.yml]
 
-# ---------- config-server ----------
-build:config-server:
-  extends: .build
+buildpush:config-server:
+  extends: .buildpush
   variables: {SERVICE: config-server}
   rules:
     - changes: [config-server/**/*, .gitlab-ci.yml]
-image:config-server:
-  extends: .image
-  variables: {SERVICE: config-server}
-  needs: ["build:config-server"]
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes: [config-server/**/*, .gitlab-ci.yml]
