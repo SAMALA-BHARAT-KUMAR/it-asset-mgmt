@@ -14,6 +14,22 @@ variables:
   cache:
     key: maven
     paths: [.m2/repository]
+  # Shell runner doesn't export JAVA_HOME. Resolve it: valid $JAVA_HOME →
+  # java on PATH → common JVM install dirs. Fail loudly if the host has no JDK.
+  before_script:
+    - |
+      if [ -z "$JAVA_HOME" ] || [ ! -x "$JAVA_HOME/bin/java" ]; then
+        if command -v java >/dev/null 2>&1; then
+          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+        else
+          for d in /usr/lib/jvm/*21* /usr/lib/jvm/java-21* /usr/lib/jvm/default-java /opt/java*; do
+            [ -x "$d/bin/java" ] && export JAVA_HOME="$d" && break
+          done
+        fi
+      fi
+      [ -x "$JAVA_HOME/bin/java" ] || { echo "ERROR: no JDK 21 on runner host $(hostname). Install one or set JAVA_HOME."; exit 1; }
+      export PATH="$JAVA_HOME/bin:$PATH"
+      echo "Using JAVA_HOME=$JAVA_HOME"; java -version
   # ponytail: -DskipTests — shell runner has no Postgres and assetservice tests
   # need a real DB. Add a DB-backed test job (Testcontainers / service Postgres
   # on a Docker runner) when one is available.
