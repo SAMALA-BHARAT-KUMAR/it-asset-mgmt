@@ -18,8 +18,9 @@ variables:
     IMAGE: "$HARBOR_URL/micro-services/$SERVICE"
   before_script:
     - docker info
-    - echo "Logging into $HARBOR_URL as $HARBOR_USERNAME"   # url+robot name are not secret; confirms they're set
-    - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_URL"
+    # Robot name hardcoded: as a GitLab var the '$' gets expanded and corrupts it.
+    # '$$' → a literal '$' after GitLab interpolation. Password stays a secret var.
+    - echo "$HARBOR_PASSWORD" | docker login -u 'robot$$micro-services+it-asset-management-git' --password-stdin "$HARBOR_URL"
   script:
     - docker build -t "$IMAGE:$CI_COMMIT_SHORT_SHA" -t "$IMAGE:latest" ./$SERVICE
     - docker push "$IMAGE:$CI_COMMIT_SHORT_SHA"
