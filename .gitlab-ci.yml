@@ -9,8 +9,8 @@ stages: [build]
 
 variables:
   DOCKER_BUILDKIT: "1"
-  # HARBOR_URL / HARBOR_USERNAME / HARBOR_PASSWORD come from GitLab CI variables
-  # (likely group-inherited). Harbor project "micro-services" is hardcoded below.
+  HARBOR_URL: "harbor.neusix.ai"        # not a secret — hardcoded so it's never empty
+  # Only HARBOR_USERNAME + HARBOR_PASSWORD come from GitLab CI variables (secrets).
 
 .buildpush:
   stage: build
@@ -18,6 +18,7 @@ variables:
     IMAGE: "$HARBOR_URL/micro-services/$SERVICE"
   before_script:
     - docker info
+    - echo "Logging into $HARBOR_URL as $HARBOR_USERNAME"   # url+robot name are not secret; confirms they're set
     - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_URL"
   script:
     - docker build -t "$IMAGE:$CI_COMMIT_SHORT_SHA" -t "$IMAGE:latest" ./$SERVICE
