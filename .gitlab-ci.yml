@@ -41,14 +41,17 @@ variables:
 
 .image:
   stage: image
-  # ponytail: uses the host's docker (shell runner). Needs docker installed on
-  # the runner host + registry login. Move to a docker/kaniko runner if absent.
+  # Pushes to Harbor. Set HARBOR_REGISTRY / HARBOR_PROJECT / HARBOR_USERNAME /
+  # HARBOR_PASSWORD as CI/CD variables. Uses the host's docker (shell runner) —
+  # needs docker installed on the runner host.
+  variables:
+    IMAGE: "$HARBOR_REGISTRY/$HARBOR_PROJECT/$SERVICE"
   before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - echo "$HARBOR_PASSWORD" | docker login -u "$HARBOR_USERNAME" --password-stdin "$HARBOR_REGISTRY"
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE/$SERVICE:latest ./$SERVICE
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$SERVICE:latest
+    - docker build -t $IMAGE:$CI_COMMIT_SHORT_SHA -t $IMAGE:latest ./$SERVICE
+    - docker push $IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE:latest
 
 # ---------- assetservice ----------
 build:assetservice:
