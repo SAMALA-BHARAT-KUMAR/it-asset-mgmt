@@ -1,0 +1,11 @@
+# Config specific to asset-service (Day 32). Served when that service asks for its config.
+# Real secrets come from env/{cipher} in prod, never plaintext (plan Day 30 prod-grade).
+server:
+  port: 8082
+
+# asset-service only VALIDATES tokens — it must use the SAME signing secret user-auth issues with.
+# (Day 41 moves this shared secret into the config-server shared application.yml.)
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-me-32-bytes-minimum-secret-key!!}
+  expiration-ms: 3600000            # access token: 1 hour
+  refresh-expiration-ms: 604800000  # refresh token: 7 days

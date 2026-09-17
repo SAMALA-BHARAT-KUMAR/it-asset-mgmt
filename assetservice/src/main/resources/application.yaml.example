@@ -1,20 +1,29 @@
 # Copy this file to application.yaml and fill in your real DB password.
 # application.yaml is gitignored so credentials never reach the repo.
+# Day 32: asset-service is now a microservice — registers in Eureka, pulls config from config-server.
 spring:
   application:
-    name: assetservice
+    name: asset-service              # registers in Eureka as ASSET-SERVICE; config-server serves config/asset-service.yml
+  config:
+    import: "configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  cloud:
+    config:
+      fail-fast: true                # don't boot half-configured
+      retry:
+        max-attempts: 6
+  data:
+    web:
+      pageable:
+        default-page-size: 20   # used when the request omits ?size
+        max-page-size: 100      # user asking ?size=1000 gets clamped to 100
+  # DB-per-service: asset-service owns assetdb (own Postgres container; DB_PORT lets it point at a non-default host port)
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: CHANGE_ME
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/assetdb
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:CHANGE_ME}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
 
-# Day 18: JWT signing. HS256 needs a key >= 256 bits (32+ chars).
-# Set JWT_SECRET in the environment in prod; never commit the real one.
-jwt:
-  secret: ${JWT_SECRET:dev-only-change-me-32-bytes-minimum-secret-key!!}
-  expiration-ms: 3600000            # access token: 1 hour
-  refresh-expiration-ms: 604800000  # refresh token: 7 days
+# server.port, eureka, and jwt.* come from config-server (config/asset-service.yml + shared application.yml)
