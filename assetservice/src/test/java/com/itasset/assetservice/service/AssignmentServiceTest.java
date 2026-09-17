@@ -3,14 +3,12 @@ package com.itasset.assetservice.service;
 import com.itasset.assetservice.dto.EmployeeAssetsResponse;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Assignment;
-import com.itasset.assetservice.entity.User;
 import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.exception.AssetNotAvailableException;
 import com.itasset.assetservice.exception.InvalidAssignmentStateException;
 import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.AssetRepository;
 import com.itasset.assetservice.repository.AssignmentRepository;
-import com.itasset.assetservice.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,13 +25,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 // Day 23: assign flow in isolation — repos mocked, no DB. Covers success, already-assigned,
-// non-deployable status, and missing asset/user.
+// non-deployable status, and missing asset. Day 31: user lives in user-auth-service; assign by userId.
 @ExtendWith(MockitoExtension.class)
 class AssignmentServiceTest {
 
     @Mock private AssignmentRepository assignments;
     @Mock private AssetRepository assets;
-    @Mock private UserRepository users;
 
     @InjectMocks private AssignmentService service;
 
@@ -44,16 +41,9 @@ class AssignmentServiceTest {
         return a;
     }
 
-    private User user() {
-        User u = new User();
-        u.setFullName("Bharat");
-        return u;
-    }
-
     @Test
     void assign_success_flipsStatusAndSaves() {
         when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.ACTIVE)));
-        when(users.findById(2L)).thenReturn(Optional.of(user()));
         when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(false);
         when(assignments.save(any(Assignment.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -68,7 +58,6 @@ class AssignmentServiceTest {
     @Test
     void assign_alreadyOut_throws409() {
         when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.ACTIVE)));
-        when(users.findById(2L)).thenReturn(Optional.of(user()));
         when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(true);
 
         assertThrows(AssetNotAvailableException.class,
@@ -79,7 +68,6 @@ class AssignmentServiceTest {
     @Test
     void assign_retiredAsset_throws409() {
         when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.RETIRED)));
-        when(users.findById(2L)).thenReturn(Optional.of(user()));
         when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(false);
 
         assertThrows(AssetNotAvailableException.class,
@@ -99,7 +87,7 @@ class AssignmentServiceTest {
     private Assignment openAssignment() {
         Assignment a = new Assignment();
         a.setAsset(asset(AssetStatus.DEPLOYED));
-        a.setUser(user());
+        a.setUserId(2L);
         a.setAssignedAt(Instant.now());
         return a; // returnedAt == null -> still out
     }
@@ -139,7 +127,6 @@ class AssignmentServiceTest {
     @Test
     void assign_capturesCorrectAssignmentFields() {
         when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.ACTIVE)));
-        when(users.findById(2L)).thenReturn(Optional.of(user()));
         when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(false);
         when(assignments.save(any(Assignment.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -148,7 +135,7 @@ class AssignmentServiceTest {
         ArgumentCaptor<Assignment> captor = ArgumentCaptor.forClass(Assignment.class);
         verify(assignments).save(captor.capture());
         Assignment saved = captor.getValue();
-        assertEquals("Bharat", saved.getUser().getFullName());
+        assertEquals(2L, saved.getUserId());
         assertEquals("admin", saved.getAssignedBy());
         assertEquals("note", saved.getNotes());
         assertNotNull(saved.getAssignedAt());
@@ -156,7 +143,6 @@ class AssignmentServiceTest {
 
     @Test
     void employeeAssets_returnsHeldAssetsAndCount() {
-        when(users.findById(2L)).thenReturn(Optional.of(user()));
         Asset a = asset(AssetStatus.DEPLOYED);
         a.setSerialNumber("SN-9");
         Assignment open = new Assignment();
@@ -166,7 +152,7 @@ class AssignmentServiceTest {
 
         EmployeeAssetsResponse resp = service.employeeAssets(2L);
 
-        assertEquals("Bharat", resp.employeeName());
+        assertEquals("user #2", resp.employeeName()); // name now lives in user-auth-service
         assertEquals(1, resp.count());
         assertEquals("SN-9", resp.assets().get(0).serialNumber());
         assertEquals(42L, resp.assets().get(0).assignmentId()); // needed so admin can close it

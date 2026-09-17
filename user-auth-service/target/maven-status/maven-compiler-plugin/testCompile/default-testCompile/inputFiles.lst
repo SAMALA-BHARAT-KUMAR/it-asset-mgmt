@@ -1,0 +1,4 @@
+/home/ladmin/bharat/it-asset-mgmt/user-auth-service/src/test/java/com/itasset/userauth/controller/AuthControllerTest.java
+/home/ladmin/bharat/it-asset-mgmt/user-auth-service/src/test/java/com/itasset/userauth/repository/UserRepositoryTest.java
+/home/ladmin/bharat/it-asset-mgmt/user-auth-service/src/test/java/com/itasset/userauth/security/JwtUtilTest.java
+/home/ladmin/bharat/it-asset-mgmt/user-auth-service/src/test/java/com/itasset/userauth/service/UserServiceTest.java

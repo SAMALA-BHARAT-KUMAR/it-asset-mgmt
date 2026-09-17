@@ -23,8 +23,9 @@ public class Assignment extends Auditable {
     @ManyToOne
     private Asset asset;
 
-    @ManyToOne
-    private User user;
+    // Day 31/32: user lives in user-auth-service now. Store only the id — no cross-DB FK/join.
+    @Column(nullable = false)
+    private Long userId;
 
     @Column(nullable = false)
     private Instant assignedAt;
@@ -51,12 +52,12 @@ public class Assignment extends Auditable {
         this.asset = asset;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Instant getAssignedAt() {

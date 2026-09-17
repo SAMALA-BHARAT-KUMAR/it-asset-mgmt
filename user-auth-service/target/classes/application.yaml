@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: user-auth-service          # config-server serves config/user-auth-service.yml under this name
+  config:
+    import: "configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  cloud:
+    config:
+      fail-fast: true                # Day 30 prod-grade: don't boot half-configured
+      retry:
+        max-attempts: 6
+  # DB-per-service: user-auth owns userdb (real creds via env; never commit prod secrets)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/userdb
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# server.port, eureka, and jwt.* come from config-server (config/user-auth-service.yml + shared application.yml)

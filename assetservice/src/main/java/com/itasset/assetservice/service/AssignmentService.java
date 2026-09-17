@@ -4,14 +4,12 @@ import com.itasset.assetservice.dto.AssetSummary;
 import com.itasset.assetservice.dto.EmployeeAssetsResponse;
 import com.itasset.assetservice.entity.Asset;
 import com.itasset.assetservice.entity.Assignment;
-import com.itasset.assetservice.entity.User;
 import com.itasset.assetservice.enums.AssetStatus;
 import com.itasset.assetservice.exception.AssetNotAvailableException;
 import com.itasset.assetservice.exception.InvalidAssignmentStateException;
 import com.itasset.assetservice.exception.ResourceNotFoundException;
 import com.itasset.assetservice.repository.AssetRepository;
 import com.itasset.assetservice.repository.AssignmentRepository;
-import com.itasset.assetservice.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +21,10 @@ public class AssignmentService {
 
     private final AssignmentRepository assignments;
     private final AssetRepository assets;
-    private final UserRepository users;
 
-    public AssignmentService(AssignmentRepository assignments, AssetRepository assets, UserRepository users) {
+    public AssignmentService(AssignmentRepository assignments, AssetRepository assets) {
         this.assignments = assignments;
         this.assets = assets;
-        this.users = users;
     }
 
     // Day 23: hand an asset to a user. Two writes (new assignment row + asset status flip)
@@ -37,8 +33,11 @@ public class AssignmentService {
     public Assignment assignAsset(Long assetId, Long userId, String notes, String assignedBy) {
         Asset asset = assets.findById(assetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetId));
-        User user = users.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        if (userId == null) {
+            throw new ResourceNotFoundException("userId is required");
+        }
+        // ponytail: userId not validated against user-auth-service here; verify via inter-service
+        // call (or gateway-propagated identity) when that wiring lands (later day).
 
         // already out on an open assignment?
         if (assignments.existsByAssetIdAndReturnedAtIsNull(assetId)) {
@@ -52,7 +51,7 @@ public class AssignmentService {
 
         Assignment assignment = new Assignment();
         assignment.setAsset(asset);
-        assignment.setUser(user);
+        assignment.setUserId(userId);
         assignment.setAssignedAt(Instant.now());
         assignment.setAssignedBy(assignedBy);
         assignment.setNotes(notes);
@@ -91,14 +90,14 @@ public class AssignmentService {
 
     // Day 26: the flagship query — what does this employee currently hold?
     public EmployeeAssetsResponse employeeAssets(Long userId) {
-        User user = users.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         List<AssetSummary> held = assignments.findByUserIdAndReturnedAtIsNull(userId).stream()
                 .map(assignment -> {
                     Asset a = assignment.getAsset();
                     return new AssetSummary(assignment.getId(), a.getSerialNumber(), a.getAssetTag(), a.getName());
                 })
                 .toList();
-        return new EmployeeAssetsResponse(user.getFullName(), held, held.size());
+        // ponytail: real employee name lives in user-auth-service; fetch it via inter-service call
+        // (or gateway-propagated identity) later. For now surface the id so the endpoint still works.
+        return new EmployeeAssetsResponse("user #" + userId, held, held.size());
     }
 }

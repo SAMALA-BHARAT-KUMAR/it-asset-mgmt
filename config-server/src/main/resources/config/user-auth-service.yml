@@ -1,4 +1,11 @@
 # Config specific to user-auth-service (Day 31). Served when that service asks for its config.
-# Example only — real DB creds come from env/{cipher} in prod, never plaintext (plan Day 30 prod-grade).
+# Real secrets come from env/{cipher} in prod, never plaintext (plan Day 30 prod-grade).
 server:
   port: 8081
+
+# Day 18: JWT signing. Shared with the asset monolith so it can validate tokens this service issues.
+# HS256 needs a key >= 256 bits (32+ chars). Dev default here; inject via env in prod.
+jwt:
+  secret: ${JWT_SECRET:dev-only-change-me-32-bytes-minimum-secret-key!!}
+  expiration-ms: 3600000            # access token: 1 hour
+  refresh-expiration-ms: 604800000  # refresh token: 7 days

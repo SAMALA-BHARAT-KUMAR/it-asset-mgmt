@@ -1,0 +1,4 @@
+com/itasset/userauth/service/UserServiceTest.class
+com/itasset/userauth/security/JwtUtilTest.class
+com/itasset/userauth/controller/AuthControllerTest.class
+com/itasset/userauth/repository/UserRepositoryTest.class

@@ -21,8 +21,8 @@ public record AssignmentResponse(
                 a.getId(),
                 a.getAsset().getId(),
                 a.getAsset().getAssetTag(),
-                a.getUser().getId(),
-                a.getUser().getFullName(),
+                a.getUserId(),
+                null, // ponytail: userName lives in user-auth-service now; resolve via Feign on Day 39
                 a.getAssignedAt(),
                 a.getReturnedAt(),
                 a.getAssignedBy(),
