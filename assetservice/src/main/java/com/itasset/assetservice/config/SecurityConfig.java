@@ -32,6 +32,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/hello").permitAll() // public: login/register
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll() // Swagger UI + spec
                 .anyRequest().authenticated())                             // everything else needs a JWT
             // Day 19: the guard runs before Spring's username/password filter, reading the Bearer token
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

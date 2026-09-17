@@ -5,6 +5,13 @@ spring:
   application:
     name: discovery-server
 
+# Structured JSON logs to stdout — FluentBit/VictoriaLogs parse them per-field.
+# ECS (Elastic Common Schema) is a widely-supported standard shape.
+logging:
+  structured:
+    format:
+      console: ecs
+
 eureka:
   client:
     # This IS the registry — it doesn't register with itself or fetch a registry from anyone.

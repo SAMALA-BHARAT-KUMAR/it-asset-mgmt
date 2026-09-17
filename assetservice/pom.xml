@@ -51,6 +51,13 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<!-- Swagger / OpenAPI UI at /swagger-ui.html — 3.x line supports Spring Boot 4 -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.1</version>
+		</dependency>
+
 		<!-- Day 32: microservice wiring — register in Eureka + pull config from config-server -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
