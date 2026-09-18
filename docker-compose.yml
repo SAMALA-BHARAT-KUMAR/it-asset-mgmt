@@ -23,7 +23,24 @@ services:
   config-server:
     build: ./config-server
     ports: ["8888:8888"]
+    environment:
+      JWT_SECRET: ${JWT_SECRET}   # served in jwt.secret so user-auth signs with the same key assetservice validates with
     depends_on: [discovery-server]
+
+  user-auth-service:
+    build: ./user-auth-service
+    ports: ["8081:8081"]
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888   # fail-fast config import needs this reachable
+      # own yaml defaults to /userdb; point at the shared itasset db like assetservice does (separate tables)
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_started
 
   assetservice:
     build: ./assetservice
