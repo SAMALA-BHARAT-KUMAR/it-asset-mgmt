@@ -1,46 +1,90 @@
-# Monorepo, 3 services. House pattern (see volpay/vigilant): Maven runs INSIDE
+# Monorepo, 4 services. House pattern (see volpay/vigilant): Maven runs INSIDE
 # each Dockerfile, so the runner only needs docker — no JDK/Maven on the host.
 # Each service builds+pushes only when ITS files change. Images go to Harbor.
+#
+# Two stages: build (no login, public base images) then push (login + push).
+# ponytail: build->push relies on the shell runner's LOCAL docker daemon keeping
+# the image between jobs. Single shell runner = fine. Multi-runner would need a
+# registry pull-cache between the stages.
 workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
-stages: [build]
+stages: [build, push]
 
 variables:
   DOCKER_BUILDKIT: "1"
   HARBOR_URL: "harbor.neusix.ai"        # not a secret — hardcoded so it's never empty
   # Only HARBOR_USERNAME + HARBOR_PASSWORD come from GitLab CI variables (secrets).
 
-.buildpush:
+.build:
   stage: build
   variables:
     IMAGE: "$HARBOR_URL/micro-services/$SERVICE"
+  script:
+    - docker build -t "$IMAGE:$CI_COMMIT_SHORT_SHA" -t "$IMAGE:latest" ./$SERVICE
+
+.push:
+  stage: push
+  variables:
+    IMAGE: "$HARBOR_URL/micro-services/$SERVICE"
   before_script:
-    - docker info
     # Robot name hardcoded in SINGLE quotes so bash keeps the literal '$' (as a
     # GitLab variable the '$' gets expanded and corrupts the name). Password
     # stays a secret var.
     - echo "$HARBOR_PASSWORD" | docker login -u 'robot$micro-services+it-asset-management-git' --password-stdin "$HARBOR_URL"
   script:
-    - docker build -t "$IMAGE:$CI_COMMIT_SHORT_SHA" -t "$IMAGE:latest" ./$SERVICE
     - docker push "$IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push "$IMAGE:latest"
 
-buildpush:assetservice:
-  extends: .buildpush
-  variables: {SERVICE: assetservice}
-  rules:
-    - changes: [assetservice/**/*, .gitlab-ci.yml]
-
-buildpush:discovery-server:
-  extends: .buildpush
+# --- discovery-server ---
+build:discovery-server:
+  extends: .build
   variables: {SERVICE: discovery-server}
   rules:
     - changes: [discovery-server/**/*, .gitlab-ci.yml]
+push:discovery-server:
+  extends: .push
+  variables: {SERVICE: discovery-server}
+  needs: ["build:discovery-server"]
+  rules:
+    - changes: [discovery-server/**/*, .gitlab-ci.yml]
 
-buildpush:config-server:
-  extends: .buildpush
+# --- config-server ---
+build:config-server:
+  extends: .build
   variables: {SERVICE: config-server}
   rules:
     - changes: [config-server/**/*, .gitlab-ci.yml]
+push:config-server:
+  extends: .push
+  variables: {SERVICE: config-server}
+  needs: ["build:config-server"]
+  rules:
+    - changes: [config-server/**/*, .gitlab-ci.yml]
+
+# --- user-auth-service ---
+build:user-auth-service:
+  extends: .build
+  variables: {SERVICE: user-auth-service}
+  rules:
+    - changes: [user-auth-service/**/*, .gitlab-ci.yml]
+push:user-auth-service:
+  extends: .push
+  variables: {SERVICE: user-auth-service}
+  needs: ["build:user-auth-service"]
+  rules:
+    - changes: [user-auth-service/**/*, .gitlab-ci.yml]
+
+# --- assetservice ---
+build:assetservice:
+  extends: .build
+  variables: {SERVICE: assetservice}
+  rules:
+    - changes: [assetservice/**/*, .gitlab-ci.yml]
+push:assetservice:
+  extends: .push
+  variables: {SERVICE: assetservice}
+  needs: ["build:assetservice"]
+  rules:
+    - changes: [assetservice/**/*, .gitlab-ci.yml]
