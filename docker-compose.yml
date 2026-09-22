@@ -1,17 +1,31 @@
-# Local/dev orchestration for the 3 services + Postgres.
-# Secrets come from a gitignored .env (see .env.example) whose var NAMES
-# match the OpenBao paths in SECRETS.txt. In-cluster, ESO supplies them instead.
+# Local/dev orchestration: full stack — 2 Postgres + discovery + config + user-auth + asset + gateway (7 containers).
+# Topology (hostnames, DB URLs, ports) lives HERE; only secrets (POSTGRES_USER/PASSWORD, JWT_SECRET) come from a
+# gitignored .env (see .env.example). In-cluster, ESO supplies those instead. DB-per-service: userdb / assetdb.
 services:
-  postgres:
+  postgres-user:
     image: postgres:17
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: userdb
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports: ["5432:5432"]
-    volumes: ["pgdata:/var/lib/postgresql/data"]
+    ports: ["5434:5432"]                # host 5434: avoid clashing with a local host Postgres on 5432
+    volumes: ["pgdata-user:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d userdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  postgres-asset:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: assetdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: ["5433:5432"]                # host 5433 to avoid clashing with postgres-user on 5432
+    volumes: ["pgdata-asset:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d assetdb"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -24,7 +38,7 @@ services:
     build: ./config-server
     ports: ["8888:8888"]
     environment:
-      JWT_SECRET: ${JWT_SECRET}   # served in jwt.secret so user-auth signs with the same key assetservice validates with
+      JWT_SECRET: ${JWT_SECRET}   # served in jwt.secret; clients resolve the placeholder against their own env too
     depends_on: [discovery-server]
 
   user-auth-service:
@@ -32,27 +46,43 @@ services:
     ports: ["8081:8081"]
     environment:
       CONFIG_SERVER_URL: http://config-server:8888   # fail-fast config import needs this reachable
-      # own yaml defaults to /userdb; point at the shared itasset db like assetservice does (separate tables)
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      EUREKA_HOST: discovery-server                  # shared config defaults to localhost; override for the compose network
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}                       # user-auth SIGNS with this — must match assetservice's validator key
     depends_on:
-      postgres:
+      postgres-user:
         condition: service_healthy
       config-server:
         condition: service_started
 
   assetservice:
     build: ./assetservice
-    ports: ["8080:8080"]
+    ports: ["8082:8082"]                              # was 8080; 8082 matches its served config, frees 8080 for the gateway
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_HOST: discovery-server
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-asset:5432/assetdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}                       # assetservice VALIDATES with the same key user-auth signs with
     depends_on:
-      postgres:
+      postgres-asset:
         condition: service_healthy
+      config-server:
+        condition: service_started
+
+  gateway:
+    build: ./gateway
+    ports: ["8080:8080"]                              # single entry point (routing wired on Day 36)
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_HOST: discovery-server
+    depends_on:
+      config-server:
+        condition: service_started
 
 volumes:
-  pgdata:
+  pgdata-user:
+  pgdata-asset:

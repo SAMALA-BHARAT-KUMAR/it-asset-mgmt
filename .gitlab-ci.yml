@@ -1,4 +1,4 @@
-# Monorepo, 4 services. House pattern (see volpay/vigilant): Maven runs INSIDE
+# Monorepo, 5 services. House pattern (see volpay/vigilant): Maven runs INSIDE
 # each Dockerfile, so the runner only needs docker — no JDK/Maven on the host.
 # Each service builds+pushes only when ITS files change. Images go to Harbor.
 #
@@ -50,3 +50,9 @@ assetservice:
   variables: {SERVICE: assetservice}
   rules:
     - changes: [assetservice/**/*, .gitlab-ci.yml]
+
+gateway:
+  extends: .deploy
+  variables: {SERVICE: gateway}
+  rules:
+    - changes: [gateway/**/*, .gitlab-ci.yml]

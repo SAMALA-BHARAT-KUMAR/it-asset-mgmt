@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -72,6 +73,21 @@ class AssignmentServiceTest {
 
         assertThrows(AssetNotAvailableException.class,
                 () -> service.assignAsset(1L, 2L, null, "admin"));
+    }
+
+    // @Version conflict: two requests read the same free asset, both pass the existsBy check, and
+    // the second save loses the race. The unit test can only mock the throw (real versioning needs a
+    // DB), but this pins the contract: the service propagates it and GlobalExceptionHandler maps it to 409.
+    @Test
+    void assign_concurrentModification_propagatesOptimisticLockFailure() {
+        when(assets.findById(1L)).thenReturn(Optional.of(asset(AssetStatus.ACTIVE)));
+        when(assignments.existsByAssetIdAndReturnedAtIsNull(1L)).thenReturn(false);
+        when(assets.save(any(Asset.class)))
+                .thenThrow(new ObjectOptimisticLockingFailureException(Asset.class, 1L));
+
+        assertThrows(ObjectOptimisticLockingFailureException.class,
+                () -> service.assignAsset(1L, 2L, null, "admin"));
+        verify(assignments, never()).save(any()); // assignment row never persisted on a lost race
     }
 
     @Test

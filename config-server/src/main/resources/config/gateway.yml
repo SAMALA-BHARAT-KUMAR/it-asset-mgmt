@@ -1,0 +1,4 @@
+# Config specific to gateway (Day 34). Served when the gateway asks for its config.
+# Bare-bones for now: it only registers in Eureka. Routing + JWT filter are added Day 36/37.
+server:
+  port: 8080          # single public entry point (assetservice moved to 8082 to free this)

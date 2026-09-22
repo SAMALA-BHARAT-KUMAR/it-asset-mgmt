@@ -58,7 +58,7 @@ public class DataSeeder implements CommandLineRunner {
         locationRepository.saveAll(locations);
 
         // 10 assets spread across categories, locations, and every status
-        AssetStatus[] statuses = AssetStatus.values(); // ACTIVE, IN_REPAIR, RETIRED
+        AssetStatus[] statuses = AssetStatus.values(); // all 5: ACTIVE, DEPLOYED, IN_REPAIR, RETIRED, DISPOSED
         for (int i = 1; i <= 10; i++) {
             Asset asset = new Asset();
             asset.setAssetTag(String.format("AST-%03d", i));

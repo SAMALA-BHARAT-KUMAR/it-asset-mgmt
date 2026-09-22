@@ -1,6 +1,7 @@
 package com.itasset.assetservice.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -48,6 +49,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleInvalidState(InvalidAssignmentStateException ex) {
         return body(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // @Version conflict: someone else assigned/returned this asset between our read and write.
+    // Spring wraps jakarta's OptimisticLockException in this; the client should retry.
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return body(HttpStatus.CONFLICT, "Asset was modified concurrently; please retry.");
     }
 
     private Map<String, Object> body(HttpStatus status, String message) {

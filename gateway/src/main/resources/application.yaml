@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: gateway                    # config-server serves config/gateway.yml under this name
+  config:
+    import: "configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+  cloud:
+    config:
+      fail-fast: true                # Day 30 prod-grade: don't boot half-configured
+      retry:
+        max-attempts: 6
+
+# server.port and eureka come from config-server (config/gateway.yml + shared application.yml)
+# Routing config (routes/predicates/filters) is deferred to Day 36.

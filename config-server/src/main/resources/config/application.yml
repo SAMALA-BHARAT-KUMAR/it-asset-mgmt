@@ -1,6 +1,7 @@
 # SHARED config — every service inherits this (filename 'application' = applies to all).
 # Where the Eureka registry lives, so services don't each hardcode it.
+# EUREKA_HOST defaults to localhost (host-local runs); compose sets it to 'discovery-server' for the container network.
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
