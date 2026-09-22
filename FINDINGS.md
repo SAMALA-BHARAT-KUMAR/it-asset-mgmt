@@ -2,6 +2,15 @@
 
 > Daily-review snapshot of what's built, how it works, and what's next.
 > Read this first before diving into files. Generated 2026-09-22. Project ≈ **Day 32 of 90**.
+>
+> **⚠ UPDATE 2026-09-22 (Days 33–35 done, on branch `days-33-35-containerization`):** the state
+> below §0–§8 describes the *pre-Day-33* system and is now partly superseded. What changed:
+> compose now runs **7 containers** with **two Postgres** (`postgres-user`/`postgres-asset`), a new
+> **`gateway`** module registers in Eureka (routing still deferred to Day 36), assetservice moved to
+> **8082** (gateway took 8080). Bugs #1 (assign race → `@Version`+409), #2 (DB unique constraints),
+> #3 (`UserRepositoryTest`/admin seed), #4 (`.env`↔compose), #5 (port drift), #6 (Eureka Docker zone)
+> are **fixed**. Verified end-to-end from a cold `docker compose up` (7/7 smoke). Regenerate this file
+> to refresh §0–§8.
 
 ---
 
@@ -369,6 +378,23 @@ role grants) via **Microsoft Graph API**. Will act as its own agentic surface la
 > Tenant licenses seen: M365 Business Basic/Standard (include Exchange → mail works), Teams Exploratory,
 > Power Automate Free. Unlicensed users have no mailbox — Graph can't send as them.
 > Secret was typed in plaintext in chat this session → rotate it once before real use (hygiene).
+
+### Vision — the ai-service (agentic assistant, Phase 4, DECIDED to build)
+The headline product surface: a **chat + voice assistant** that lets non-technical staff run admin/asset
+tasks in plain language instead of pinging Bharat ("make a DL group", "remove this user").
+- **Flow:** user chats/speaks → LLM extracts intent → if details missing, AI asks with **options** →
+  user picks → **orchestrator** turns it into tool calls → backend/Graph APIs execute → confirmation back.
+- **Human-in-the-loop confirm on all writes** (create user, delete, group changes) — never act on a
+  half-understood request; ask, show what it will do, then execute.
+- **One brain, many tools:** a single agentic/orchestrator layer drives BOTH Graph admin tasks AND the
+  asset/auth services — NOT a separate chatbot per service. Tools wrap existing REST endpoints.
+- **Voice = free browser feature, NOT a service:** Web Speech API (`SpeechRecognition` for mic→text,
+  `speechSynthesis` for text→speech). No speech backend, no cost. Text still goes through the same LLM.
+- **Sequencing:** this is the LAST layer — it only *calls* the other services, so those APIs (mail,
+  user, group, asset) must exist first. Aligns with existing Phase 4 plan (anthropic-java + Claude
+  Opus 4.8, pgvector RAG, agentic tool-calling, ROLE gating).
+- **Why it matters:** turns "5 microservices only the admin can operate" into self-serve for the whole
+  org — the difference between a project and a product.
 
 ---
 
