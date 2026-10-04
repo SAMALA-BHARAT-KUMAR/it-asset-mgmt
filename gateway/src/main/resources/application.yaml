@@ -10,4 +10,4 @@ spring:
         max-attempts: 6
 
 # server.port and eureka come from config-server (config/gateway.yml + shared application.yml)
-# Routing config (routes/predicates/filters) is deferred to Day 36.
+# Routes also live in config-server (config/gateway.yml), so they change without rebuilding the gateway.

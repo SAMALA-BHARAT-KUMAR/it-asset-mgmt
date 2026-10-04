@@ -40,6 +40,13 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}   # served in jwt.secret; clients resolve the placeholder against their own env too
     depends_on: [discovery-server]
+    # Clients wait on this: config-client 5.0.x retries 6x with no backoff (~1ms total), so a client that
+    # starts before config-server is serving just dies. Fetching a real config doc = actually ready.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/gateway/default"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   user-auth-service:
     build: ./user-auth-service
@@ -55,7 +62,7 @@ services:
       postgres-user:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
 
   assetservice:
     build: ./assetservice
@@ -71,17 +78,17 @@ services:
       postgres-asset:
         condition: service_healthy
       config-server:
-        condition: service_started
+        condition: service_healthy
 
   gateway:
     build: ./gateway
-    ports: ["8080:8080"]                              # single entry point (routing wired on Day 36)
+    ports: ["8080:8080"]                              # single entry point: routes /api/** to services (Day 36)
     environment:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_HOST: discovery-server
     depends_on:
       config-server:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   pgdata-user:

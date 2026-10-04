@@ -1,4 +1,27 @@
-# Config specific to gateway (Day 34). Served when the gateway asks for its config.
-# Bare-bones for now: it only registers in Eureka. Routing + JWT filter are added Day 36/37.
+# Config specific to gateway (Day 34, routing Day 36). Served when the gateway asks for its config.
+# JWT filter at the gateway comes Day 37; until then each service still validates tokens itself.
 server:
   port: 8080          # single public entry point (assetservice moved to 8082 to free this)
+
+# Day 36: path -> service. lb://<name> = look the name up in Eureka and load-balance across instances.
+# Paths are forwarded unchanged (no StripPrefix) because the services already serve /api/...
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # Must win over /api/users/** below: this one lives in asset-service, not user-auth.
+            - id: asset-user-assignments
+              uri: lb://asset-service
+              order: -1
+              predicates:
+                - Path=/api/users/*/assignments
+            - id: user-auth-service
+              uri: lb://user-auth-service
+              predicates:
+                - Path=/api/auth/**,/api/users/**
+            - id: asset-service
+              uri: lb://asset-service
+              predicates:
+                - Path=/api/assets/**,/api/assignments/**,/api/employees/**,/api/hello

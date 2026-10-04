@@ -396,6 +396,20 @@ tasks in plain language instead of pinging Bharat ("make a DL group", "remove th
 - **Why it matters:** turns "5 microservices only the admin can operate" into self-serve for the whole
   org — the difference between a project and a product.
 
+### Future delivery channel — Teams bot (OPTIONAL, later, NOT a new app)
+- **Do NOT build a chat/messaging app** — Teams already exists (tenant has Teams licenses). Rebuilding
+  person-to-person chat = reinventing Teams. Skip.
+- **DO** (later) surface the SAME ai-service assistant *inside* Teams as a **bot** — just another front
+  door to the one orchestrator, not a second brain. `Teams chat → ai-service → today's Graph creds`.
+- **Separate integration from today's Graph app:** a Teams bot needs its own **Azure Bot registration
+  (Bot Framework)** + a **messaging endpoint URL** + a **Teams app manifest** published to the org's
+  Teams app catalog. It *reuses* the Graph client-credentials for the actual actions.
+- **Does NOT ship bundled with Teams** — you publish it into the org catalog, users add it from Apps.
+- **Scopable to specific users/groups** via Teams admin app permission/setup policies (pilot then widen).
+- **Cost:** Microsoft side (bot registration, Teams channel, publishing) = **free**. Real cost = hosting
+  the ai-service (existing infra) + Claude API tokens — same whether front door is web or Teams.
+- **Sequencing:** web chat first; Teams bot is a thin adapter added once the assistant brain exists.
+
 ---
 
 ## 10. Reference files
